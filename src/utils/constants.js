@@ -1,0 +1,9 @@
+export const API_URL = "http://localhost:8080/api";
+
+export const ESTADOS_PEDIDO = {
+CREADO: "CREADO",
+PREPARACION: "PREPARACION",
+LISTO: "LISTO",
+PAGADO: "PAGADO",
+ENTREGADO: "ENTREGADO"
+};
