@@ -5,11 +5,7 @@ import { listarProductos } from "../api/productosApi";
 export function useProductos(activo, categoriaId, orden, tipoOrden) {
     // Estado que almacena la lista de productos recibida del backend
     const [productos, setProductos] = useState([]);
-
-    // Controla si los datos están cargando para mostrar un spinner o mensaje de espera
     const [loading, setLoading] = useState(true);
-
-    // Almacena el mensaje de error si la llamada al backend falla
     const [error, setError] = useState(null);
 
     // useCallback memoriza fetchProductos y solo la recrea si cambian los filtros
