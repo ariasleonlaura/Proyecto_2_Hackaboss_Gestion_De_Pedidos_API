@@ -3,6 +3,7 @@ import { cambiarEstadoDelPedido } from "../../api/pedidosApi";
 import { ESTADOS_PEDIDO } from "../../utils/constants";
 
 export default function PedidoCard({ pedido, onAvanzar }) {
+  //el botón esta trabajando?
   const [advancing, setAdvancing] = useState(false);
 
   async function handleAvanzar() {
@@ -30,9 +31,9 @@ export default function PedidoCard({ pedido, onAvanzar }) {
 
       <ul className="pedido-card__productos">
         {pedido.productos?.map((p) => (
-          <li key={p.id} className="pedido-card__producto">
+          <li key={p.productoId} className="pedido-card__producto">
             <span className="pedido-card__cantidad">{p.cantidad}×</span>
-            <span className="pedido-card__nombre">{p.nombre}</span>
+            <span className="pedido-card__nombre">{p.nombreProducto}</span>
           </li>
         ))}
       </ul>

@@ -1,4 +1,3 @@
-import "../styles/CocinaPage.css";
 import { usePedidos } from "../hooks/usePedidos";
 import { cambiarEstadoDelPedido } from "../api/pedidosApi";
 import { ESTADOS_PEDIDO } from "../utils/constants";
@@ -15,6 +14,7 @@ export default function CocinaPage() {
   } = usePedidos();
 
   async function handleAvanzar(pedidoId) {
+    //este pedido esta en la lista de pedidos creados?
     const estaCreado = pedidosCreados.some((p) => p.id === pedidoId);
     const nuevoEstado = estaCreado ? ESTADOS_PEDIDO.PREPARACION : ESTADOS_PEDIDO.LISTO;
     await cambiarEstadoDelPedido(pedidoId, { estado: nuevoEstado });
