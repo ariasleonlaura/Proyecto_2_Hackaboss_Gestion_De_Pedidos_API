@@ -1,7 +1,7 @@
 import { usePedidos } from "../hooks/usePedidos";
 import { cambiarEstadoDelPedido } from "../api/pedidosApi";
 import { ESTADOS_PEDIDO } from "../utils/constants";
-import ListaPedidos from "../components/VistaCocina/ListaPedidos";
+import ListaPedidos from "../components/vistaCocina/ListaPedidos";
 
 export default function CocinaPage() {
   const {
