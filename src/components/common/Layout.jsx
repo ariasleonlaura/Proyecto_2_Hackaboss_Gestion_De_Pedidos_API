@@ -1,45 +1,32 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { Outlet, NavLink } from 'react-router-dom';
 
-
-function Layout() {
+const Layout = () => {
   return (
-    <div className="layout">
-      <nav className="navbar">
-        <span className="navbar__titulo">Gestión de Pedidos</span>
-        <div className="navbar__links">
-          <NavLink
-            to="/terminal"
-            className={({ isActive }) =>
-              isActive ? "navbar__link navbar__link--active" : "navbar__link"
-            }
-          >
-            Terminal
-          </NavLink>
-          <NavLink
-            to="/cocina"
-            className={({ isActive }) =>
-              isActive ? "navbar__link navbar__link--active" : "navbar__link"
-            }
-          >
-            Cocina
-          </NavLink>
-          <NavLink
-            to="/recogida"
-            className={({ isActive }) =>
-              isActive ? "navbar__link navbar__link--active" : "navbar__link"
-            }
-          >
-            Recogida
-          </NavLink>
-        </div>
-      </nav>
+    <div className="layout-container">
+     
+      <header className="navbar">
+        <h1>Gestión de Pedidos</h1>
+        <nav>
+          <ul>
+            <li>
+              <NavLink to="/">Terminal</NavLink>
+            </li>
+            <li>
+              <NavLink to="/cocina">Cocina</NavLink>
+            </li>
+            <li>
+              <NavLink to="/recogida">Recogida</NavLink>
+            </li>
+          </ul>
+        </nav>
+      </header>
 
-      <main className="layout__contenido">
+      
+      <main className="main-content">
         <Outlet />
       </main>
     </div>
   );
-}
-
+};
 
 export default Layout;
