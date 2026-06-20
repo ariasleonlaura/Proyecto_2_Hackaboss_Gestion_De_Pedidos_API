@@ -77,22 +77,33 @@ const TerminalPage = () => {
   // Envía el pedido al backend en dos pasos:
   // 1) crea el pedido vacío asociado a la terminal
   // 2) añade cada producto del carrito uno a uno al pedido ya creado
+  // Envía el pedido al backend de una sola vez como exige Spring Boot
   const handleEnviarPedido = async () => {
     try {
-      const pedidoCreado = await registrarPedido({ terminalId: terminalActiva.id });
+      // 1. Preparamos el formato exacto que pide el backend: { "idProducto": cantidad }
+      const productosParaBackend = {};
+      carrito.forEach(item => {
+        productosParaBackend[item.productoId] = item.cantidad;
+      });
 
-      // for...of en vez de forEach porque necesitamos esperar (await) cada llamada
-      // antes de lanzar la siguiente, ya que todas dependen del mismo pedidoId
-      for (const item of carrito) {
-        await agregarProductoAPedido(pedidoCreado.id, {
-          productoId: item.productoId,
-          cantidad: item.cantidad,
-        });
+      // 2. Armamos el objeto con el id de la caja y los productos
+      const dto = {
+        terminalId: terminalActiva.id,
+        productosComprados: productosParaBackend
+      };
+
+      // 3. Lo enviamos de golpe
+      const pedidoCreado = await registrarPedido(dto);
+
+      // (Comprobación de seguridad por si el backend se queja de algo)
+      if (pedidoCreado.error || pedidoCreado.detalles) {
+        throw new Error(pedidoCreado.detalles ? pedidoCreado.detalles.join(", ") : "Datos inválidos");
       }
 
-      // Mostramos el código generado, que el cliente usará para recoger su pedido
-      alert(`¡Pedido enviado! Tu código es: ${pedidoCreado.codigo}`);
-      setCarrito([]); // vaciamos el carrito para el siguiente pedido
+      // 4. Mostramos el código generado
+      alert(`¡Pedido enviado a cocina! Tu código es: ${pedidoCreado.codigo}`);
+      setCarrito([]); // vaciamos el carrito para el siguiente cliente
+      
     } catch (e) {
       alert("Error al enviar el pedido: " + e.message);
     }
