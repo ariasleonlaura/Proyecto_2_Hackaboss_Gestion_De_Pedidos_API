@@ -1,0 +1,232 @@
+/* ── Página ─────────────────────────────────────────────── */
+.cocina-page {
+  min-height: 100vh;
+  background: var(--color-background-tertiary);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Cabecera ────────────────────────────────────────────── */
+.cocina-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  background: var(--color-background-primary);
+  border-bottom: 0.5px solid var(--color-border-tertiary);
+}
+
+.cocina-header__titulo {
+  font-size: 20px;
+  font-weight: 500;
+  margin: 0;
+  color: var(--color-text-primary);
+}
+
+.cocina-header__controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.cocina-header__timestamp {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.cocina-header__btn-refetch {
+  font-size: 14px;
+  padding: 6px 14px;
+  border-radius: var(--border-radius-md);
+  border: 0.5px solid var(--color-border-secondary);
+  background: var(--color-background-primary);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.cocina-header__btn-refetch:hover {
+  background: var(--color-background-secondary);
+}
+
+.cocina-header__btn-refetch:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Error ───────────────────────────────────────────────── */
+.cocina-error {
+  margin: 1rem 1.5rem 0;
+  padding: 0.75rem 1rem;
+  background: var(--color-background-danger);
+  color: var(--color-text-danger);
+  border: 0.5px solid var(--color-border-danger);
+  border-radius: var(--border-radius-md);
+  font-size: 14px;
+}
+
+/* ── Grid de columnas ────────────────────────────────────── */
+.cocina-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  flex: 1;
+  align-items: start;
+}
+
+@media (max-width: 640px) {
+  .cocina-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Columna ─────────────────────────────────────────────── */
+.cocina-columna {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.cocina-columna__titulo {
+  font-size: 15px;
+  font-weight: 500;
+  margin: 0 0 0.25rem;
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cocina-columna__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Contador de "Nuevos" en amarillo */
+.cocina-columna--nuevos .cocina-columna__count {
+  background: #FAEEDA;
+  color: #854F0B;
+}
+
+/* Contador de "En preparación" en azul */
+.cocina-columna--preparacion .cocina-columna__count {
+  background: #E6F1FB;
+  color: #185FA5;
+}
+
+.cocina-columna__vacia {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  padding: 1.5rem 0;
+  text-align: center;
+}
+
+/* ── Tarjeta de pedido ───────────────────────────────────── */
+.pedido-card {
+  background: var(--color-background-primary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg);
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.pedido-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pedido-card__codigo {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  letter-spacing: 0.03em;
+}
+
+/* ── Badges de estado ────────────────────────────────────── */
+.pedido-card__badge {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 99px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.pedido-card__badge--creado {
+  background: #FAEEDA;
+  color: #854F0B;
+}
+
+.pedido-card__badge--preparacion {
+  background: #E6F1FB;
+  color: #185FA5;
+}
+
+.pedido-card__badge--listo {
+  background: #EAF3DE;
+  color: #3B6D11;
+}
+
+/* ── Lista de productos ──────────────────────────────────── */
+.pedido-card__productos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-top: 0.5px solid var(--color-border-tertiary);
+  padding-top: 0.75rem;
+}
+
+.pedido-card__producto {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--color-text-primary);
+}
+
+.pedido-card__cantidad {
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  min-width: 24px;
+}
+
+.pedido-card__nombre {
+  color: var(--color-text-primary);
+}
+
+/* ── Botón avanzar estado ────────────────────────────────── */
+.pedido-card__btn {
+  width: 100%;
+  padding: 8px 0;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: var(--border-radius-md);
+  border: 0.5px solid var(--color-border-secondary);
+  background: var(--color-background-primary);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.pedido-card__btn:hover:not(:disabled) {
+  background: var(--color-background-secondary);
+}
+
+.pedido-card__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

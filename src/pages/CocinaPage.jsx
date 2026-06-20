@@ -2,6 +2,7 @@ import { usePedidos } from "../hooks/usePedidos";
 import { cambiarEstadoDelPedido } from "../api/pedidosApi";
 import { ESTADOS_PEDIDO } from "../utils/constants";
 import ListaPedidos from "../components/vistaCocina/ListaPedidos";
+import "../styles/CocinaPage.css";
 
 export default function CocinaPage() {
   const {
