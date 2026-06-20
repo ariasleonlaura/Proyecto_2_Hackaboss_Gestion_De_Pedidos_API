@@ -1,3 +1,10 @@
+:root {
+  --color-borde: #333;
+  --color-borde-suave: #999;
+  --color-peligro: #e63946;
+  --color-primario: #aa3bff;
+}
+
 /* ── Loading ─────────────────────────────────────────────── */
 .loading-container {
     display: flex;
