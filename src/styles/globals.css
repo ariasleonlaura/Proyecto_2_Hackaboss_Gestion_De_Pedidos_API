@@ -111,3 +111,13 @@
   font-size: 14px;
   color: var(--text);
 }
+
+.error-container {
+  padding: 1rem;
+  color: red;
+  text-align: center;
+  background-color: #ffe6e6;
+  border: 1px solid red;
+  border-radius: 8px;
+  margin: 1rem;
+}
