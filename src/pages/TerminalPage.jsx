@@ -5,6 +5,9 @@ import { registrarPedido, agregarProductoAPedido } from '../api/pedidosApi';
 import ErrorMessage from '../components/common/ErrorMessage';
 import { Loading } from '../components/common/Loading';
 import '../styles/TerminalPage.css';
+import { toast } from 'sonner'
+
+
 
 const TerminalPage = () => {
   // Terminal que el cliente ha seleccionado al entrar (null = aún no ha elegido)
@@ -101,11 +104,12 @@ const TerminalPage = () => {
       }
 
       // 4. Mostramos el código generado
-      alert(`¡Pedido enviado a cocina! Tu código es: ${pedidoCreado.codigo}`);
+      toast.success(`¡Pedido enviado! Código: ${pedidoCreado.codigo}`);
+
       setCarrito([]); // vaciamos el carrito para el siguiente cliente
       
     } catch (e) {
-      alert("Error al enviar el pedido: " + e.message);
+      toast.error("Error al enviar el pedido: " + e.message);
     }
   };
 
