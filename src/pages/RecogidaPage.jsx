@@ -3,18 +3,20 @@ import { listarPedidosYPorEstado, cambiarEstadoDelPedido } from '../api/pedidosA
 import { Loading } from '../components/common/Loading';
 import ErrorMessage from '../components/common/ErrorMessage';
 import '../styles/RecogidaPage.css';
-import { toast } from 'sonner'
+import { toast } from 'sonner';
 
 const RecogidaPage = () => {
-  const [pedidosListos, setPedidosListos] = useState([]);
+  const [pedidos, setPedidos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Función para traer los pedidos "LISTOS"
-  const fetchPedidosListos = async () => {
+  const fetchPedidos = async () => {
     try {
-      const data = await listarPedidosYPorEstado('LISTO');
-      setPedidosListos(data);
+      const [listos, pagados] = await Promise.all([
+        listarPedidosYPorEstado('LISTO'),
+        listarPedidosYPorEstado('PAGADO')
+      ]);
+      setPedidos([...listos, ...pagados]);
       setError(null);
     } catch (err) {
       setError(err.message);
@@ -23,20 +25,22 @@ const RecogidaPage = () => {
     }
   };
 
-  // Se ejecuta al cargar la página y luego cada 15 segundos (polling)
   useEffect(() => {
-    fetchPedidosListos();
-    const interval = setInterval(fetchPedidosListos, 15000);
+    fetchPedidos();
+    const interval = setInterval(fetchPedidos, 15000);
     return () => clearInterval(interval);
   }, []);
 
-  // Al pulsar entregar, cambiamos el estado a "ENTREGADO" y recargamos
-  const handleEntregar = async (id) => {
+  const handleAccion = async (id, estadoActual) => {
     try {
-      await cambiarEstadoDelPedido(id, { estado: 'ENTREGADO' });
-      fetchPedidosListos(); // Recargamos para que desaparezca de la pantalla
+      const nuevoEstado = estadoActual === 'LISTO' ? 'PAGADO' : 'ENTREGADO';
+      await cambiarEstadoDelPedido(id, { estado: nuevoEstado });
+      
+      toast.success(estadoActual === 'LISTO' ? '¡Pedido cobrado!' : '¡Pedido entregado con éxito!');
+      
+      fetchPedidos(); 
     } catch (err) {
-      toast.error("Error al entregar el pedido");
+      toast.error("Error al actualizar el pedido");
     }
   };
 
@@ -45,20 +49,32 @@ const RecogidaPage = () => {
 
   return (
     <div className="recogida-container">
-      <h2>Pantalla de Recogida</h2>
-      <p>Los siguientes pedidos están listos para ser recogidos:</p>
+      <h2>Pantalla de Recogida y Cobro</h2>
+      <p>Los siguientes pedidos están pendientes de pago o entrega:</p>
       
       <div className="pedidos-listos-grid">
-        {pedidosListos.length === 0 ? (
+        {pedidos.length === 0 ? (
           <p style={{ gridColumn: '1 / -1', fontSize: '1.5rem', color: '#666' }}>
-            No hay pedidos listos en este momento.
+            No hay pedidos en esta zona en este momento.
           </p>
         ) : (
-          pedidosListos.map(pedido => (
-            <div key={pedido.id} className="pedido-listo-card">
+          pedidos.map(pedido => (
+            <div 
+              key={pedido.id} 
+              className="pedido-listo-card"
+              style={pedido.estado === 'PAGADO' ? { backgroundColor: '#aa3bff' } : {}}
+            >
               <h1>{pedido.codigo}</h1>
-              <button className="btn-entregar" onClick={() => handleEntregar(pedido.id)}>
-                Entregado al Cliente ✓
+              
+              <p style={{ fontSize: '1.5rem', marginBottom: '1.5rem', color: 'white' }}>
+                Total: <strong>{pedido.total.toFixed(2)} €</strong>
+              </p>
+
+              <button 
+                className="btn-entregar" 
+                onClick={() => handleAccion(pedido.id, pedido.estado)}
+              >
+                {pedido.estado === 'LISTO' ? '💶 Cobrar Pedido' : 'Entregado al Cliente ✓'}
               </button>
             </div>
           ))
