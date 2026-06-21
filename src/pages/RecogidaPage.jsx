@@ -5,15 +5,19 @@ import ErrorMessage from '../components/common/ErrorMessage';
 import '../styles/RecogidaPage.css';
 
 const RecogidaPage = () => {
-  const [pedidosListos, setPedidosListos] = useState([]);
+  const [pedidos, setPedidos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Función para traer los pedidos "LISTOS"
-  const fetchPedidosListos = async () => {
+  // Traemos TANTO los que están listos para cobrar, como los que están pagados y listos para entregar
+  const fetchPedidos = async () => {
     try {
-      const data = await listarPedidosYPorEstado('LISTO');
-      setPedidosListos(data);
+      const [listos, pagados] = await Promise.all([
+        listarPedidosYPorEstado('LISTO'),
+        listarPedidosYPorEstado('PAGADO')
+      ]);
+      // Los juntamos todos en la misma pantalla
+      setPedidos([...listos, ...pagados]);
       setError(null);
     } catch (err) {
       setError(err.message);
@@ -22,20 +26,20 @@ const RecogidaPage = () => {
     }
   };
 
-  // Se ejecuta al cargar la página y luego cada 15 segundos (polling)
   useEffect(() => {
-    fetchPedidosListos();
-    const interval = setInterval(fetchPedidosListos, 15000);
+    fetchPedidos();
+    const interval = setInterval(fetchPedidos, 15000);
     return () => clearInterval(interval);
   }, []);
 
-  // Al pulsar entregar, cambiamos el estado a "ENTREGADO" y recargamos
-  const handleEntregar = async (id) => {
+  // Función dinámica: si está LISTO lo pasa a PAGADO. Si está PAGADO lo pasa a ENTREGADO.
+  const handleAccion = async (id, estadoActual) => {
     try {
-      await cambiarEstadoDelPedido(id, { estado: 'ENTREGADO' });
-      fetchPedidosListos(); // Recargamos para que desaparezca de la pantalla
+      const nuevoEstado = estadoActual === 'LISTO' ? 'PAGADO' : 'ENTREGADO';
+      await cambiarEstadoDelPedido(id, { estado: nuevoEstado });
+      fetchPedidos(); 
     } catch (err) {
-      alert("Error al entregar: " + err.message);
+      alert("Error al actualizar el pedido: " + err.message);
     }
   };
 
@@ -44,20 +48,33 @@ const RecogidaPage = () => {
 
   return (
     <div className="recogida-container">
-      <h2>Pantalla de Recogida</h2>
-      <p>Los siguientes pedidos están listos para ser recogidos:</p>
+      <h2>Pantalla de Recogida y Cobro</h2>
+      <p>Pedidos pendientes de pago o entrega:</p>
       
       <div className="pedidos-listos-grid">
-        {pedidosListos.length === 0 ? (
+        {pedidos.length === 0 ? (
           <p style={{ gridColumn: '1 / -1', fontSize: '1.5rem', color: '#666' }}>
-            No hay pedidos listos en este momento.
+            No hay pedidos en esta zona en este momento.
           </p>
         ) : (
-          pedidosListos.map(pedido => (
-            <div key={pedido.id} className="pedido-listo-card">
+          pedidos.map(pedido => (
+            <div 
+              key={pedido.id} 
+              // Le añadimos una clase extra si ya está pagado para poder cambiarle el color en CSS
+              className={`pedido-listo-card ${pedido.estado === 'PAGADO' ? 'pagado' : ''}`}
+            >
               <h1>{pedido.codigo}</h1>
-              <button className="btn-entregar" onClick={() => handleEntregar(pedido.id)}>
-                Entregado al Cliente ✓
+              {/* Mostramos el total para que el camarero sepa cuánto cobrar */}
+              <p style={{ fontSize: '1.5rem', marginBottom: '1rem', color: 'white' }}>
+                Total: <strong>{pedido.total.toFixed(2)} €</strong>
+              </p>
+              
+              <button 
+                className="btn-entregar" 
+                onClick={() => handleAccion(pedido.id, pedido.estado)}
+              >
+                {/* El texto del botón cambia según la fase */}
+                {pedido.estado === 'LISTO' ? '💶 Cobrar Pedido' : '✓ Entregar al Cliente'}
               </button>
             </div>
           ))

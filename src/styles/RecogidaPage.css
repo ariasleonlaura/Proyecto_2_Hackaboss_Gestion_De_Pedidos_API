@@ -39,3 +39,7 @@
 .btn-entregar:hover {
   transform: scale(1.05);
 }
+
+.pedido-listo-card.pagado {
+  background-color: #aa3bff; 
+}
