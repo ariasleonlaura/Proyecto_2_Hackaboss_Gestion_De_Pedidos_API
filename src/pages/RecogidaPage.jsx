@@ -3,6 +3,7 @@ import { listarPedidosYPorEstado, cambiarEstadoDelPedido } from '../api/pedidosA
 import { Loading } from '../components/common/Loading';
 import ErrorMessage from '../components/common/ErrorMessage';
 import '../styles/RecogidaPage.css';
+import { toast } from 'sonner'
 
 const RecogidaPage = () => {
   const [pedidosListos, setPedidosListos] = useState([]);
@@ -35,7 +36,7 @@ const RecogidaPage = () => {
       await cambiarEstadoDelPedido(id, { estado: 'ENTREGADO' });
       fetchPedidosListos(); // Recargamos para que desaparezca de la pantalla
     } catch (err) {
-      alert("Error al entregar: " + err.message);
+      toast.error("Error al entregar el pedido");
     }
   };
 

@@ -1,0 +1,1419 @@
+=== src/api/pedidosApi.js ===
+import { API_URL } from "../utils/constants";
+
+const PEDIDOS_URL = `${API_URL}/pedidos`;
+
+export async function registrarPedido(crearPedidoDto) {
+    const response = await fetch(PEDIDOS_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(crearPedidoDto)
+    });
+
+    return response.json();
+}
+
+export async function agregarProductoAPedido(pedidoId, dto) {
+    const response = await fetch(`${PEDIDOS_URL}/${pedidoId}/productos`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dto)
+    });
+
+    return response.json();
+}
+
+export async function eliminarProductoDePedido(pedidoId, productoId, cantidad) {
+    const response = await fetch(`${PEDIDOS_URL}/${pedidoId}/productos/${productoId}?cantidad=${cantidad}`, 
+        {method: "DELETE"});
+
+        return response.json();
+}
+
+export async function cambiarEstadoDelPedido(pedidoId, dto) {
+    const response = await fetch(`${PEDIDOS_URL}/${pedidoId}/estado`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dto)
+    });
+
+    return response.json();
+}
+
+export async function buscarPedidoPorCodigo(codigo) {
+    const response = await fetch(`${PEDIDOS_URL}/codigo/${codigo}`);
+
+    return response.json();
+}
+
+export async function listarPedidosYPorEstado(estado) {
+    // En función de si recibe el query param que no es obligatorio, la url es una u otra
+    const url = estado ? `${PEDIDOS_URL}?estado=${estado}` : PEDIDOS_URL;
+
+    const response = await fetch(url);
+
+    return response.json();
+}
+=== src/api/productosApi.js ===
+import { API_URL } from "../utils/constants";
+
+const PRODUCTOS_URL = `${API_URL}/productos`;
+
+export async function crearProducto(dto) {
+    const response = await fetch(PRODUCTOS_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dto)
+    });
+
+    return response.json();
+}
+
+export async function listarProductos(activo, categoriaId, orden, tipoOrden) {
+    // Con URLSearcParams se construyen query params automáticamente: 
+    // "activo=true" y "orden=precio" genera "activo=true&orden=precio"
+    const params = new URLSearchParams();
+
+    // activo puede ser false (producto inactivo), por eso comprobamos undefined y null explícitamente
+    if (activo !== undefined && activo !== null) params.append("activo", activo);
+    if (categoriaId) params.append("categoriaId", categoriaId);
+    if (orden) params.append("orden", orden);
+    if (tipoOrden) params.append("tipoOrden", tipoOrden);
+
+    // Si params tiene algo, construimos la URL con los query params
+    // Si no viene ningún filtro, usamos la URL base y el backend devuelve todos los productos
+    // Ejemplo con filtros:  http://localhost:8080/api/productos?activo=true&orden=precio
+    // Ejemplo sin filtros:  http://localhost:8080/api/productos
+    const url = params.toString() ? `${PRODUCTOS_URL}?${params}` : PRODUCTOS_URL;
+    const response = await fetch(url);
+
+    return response.json();
+}
+
+export async function actualizarProducto(id, dto) {
+    const response = await fetch(`${PRODUCTOS_URL}/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dto)
+    });
+
+    return response.json();
+}
+
+export async function cambiarEstadoDeProducto(id, activo) {
+    const response = await fetch(`${PRODUCTOS_URL}/${id}/estado?activo=${activo}`,
+        { method: "PATCH" });
+
+    return response.json();
+}=== src/api/terminalesApi.js ===
+import { API_URL } from "../utils/constants";
+
+const TERMINALES_URL = `${API_URL}/terminales`;
+
+export async function listarTerminales() {
+    const response = await fetch(`${TERMINALES_URL}`);
+
+    return response.json();
+}
+
+export async function buscarTerminalPorId(id) {
+    const response = await fetch(`${TERMINALES_URL}/${id}`);
+
+    return response.json();
+}
+
+export async function crearTerminal(nuevaTerminalDto) {
+    const response = await fetch(`${TERMINALES_URL}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(nuevaTerminalDto)
+    });
+
+    return response.json();
+}=== src/App.jsx ===
+import AppRouter from './router/AppRouter';
+
+function App() {
+  return (
+    <AppRouter />
+  );
+}
+
+export default App;=== src/components/common/ErrorMessage.jsx ===
+import '../../styles/globals.css';
+
+const ErrorMessage = ({ message }) => {
+  return (
+    <div className="error-container">
+      <h3>⚠️ ¡Vaya! Algo ha fallado</h3>
+      <p>{message || "Ha ocurrido un error inesperado al conectar con el servidor."}</p>
+    </div>
+  );
+};
+
+export default ErrorMessage;=== src/components/common/Layout.jsx ===
+import { Outlet, NavLink } from 'react-router-dom';
+
+const Layout = () => {
+  return (
+    <div className="layout-container">
+     
+      <header className="navbar">
+        <h1>Gestión de Pedidos</h1>
+        <nav>
+          <ul>
+            <li>
+              <NavLink to="/">Terminal</NavLink>
+            </li>
+            <li>
+              <NavLink to="/cocina">Cocina</NavLink>
+            </li>
+            <li>
+              <NavLink to="/recogida">Recogida</NavLink>
+            </li>
+          </ul>
+        </nav>
+      </header>
+
+      
+      <main className="main-content">
+        <Outlet />
+      </main>
+    </div>
+  );
+};
+
+export default Layout;=== src/components/common/Loading.jsx ===
+export function Loading() {
+    return (
+        <div className="loading-container">
+            <div className="spinner"></div>
+            <p>Cargando...</p>
+        </div>
+    );
+}=== src/components/vistaCocina/ListaPedidos.jsx ===
+import PedidoCard from "./PedidoCard";
+
+export default function ListaPedidos({ titulo, pedidos, onAvanzar, colorClass }) {
+  return (
+    <section className={`cocina-columna ${colorClass}`}>
+      <h2 className="cocina-columna__titulo">
+        {titulo}
+        <span className="cocina-columna__count">{pedidos.length}</span>
+      </h2>
+      {pedidos.length === 0 ? (
+        <p className="cocina-columna__vacia">Sin pedidos ahora mismo</p>
+      ) : (
+        pedidos.map((p) => (
+          <PedidoCard key={p.id} pedido={p} onAvanzar={onAvanzar} />
+        ))
+      )}
+    </section>
+  );
+}=== src/components/vistaCocina/PedidoCard.jsx ===
+import { useState } from "react";
+import { cambiarEstadoDelPedido } from "../../api/pedidosApi";
+import { ESTADOS_PEDIDO } from "../../utils/constants";
+
+export default function PedidoCard({ pedido, onAvanzar }) {
+  //el botón esta trabajando?
+  const [advancing, setAdvancing] = useState(false);
+
+  async function handleAvanzar() {
+    setAdvancing(true);
+    try {
+      await onAvanzar(pedido.id);
+    } finally {
+      setAdvancing(false);
+    }
+  }
+
+  const labelBoton =
+    pedido.estado === ESTADOS_PEDIDO.CREADO
+      ? "▶ Iniciar preparación"
+      : "✔ Marcar como listo";
+
+  return (
+    <div className="pedido-card">
+      <header className="pedido-card__header">
+        <span className="pedido-card__codigo">{pedido.codigo}</span>
+        <span className={`pedido-card__badge pedido-card__badge--${pedido.estado.toLowerCase()}`}>
+          {pedido.estado}
+        </span>
+      </header>
+
+      <ul className="pedido-card__productos">
+        {pedido.productos?.map((p) => (
+          <li key={p.productoId} className="pedido-card__producto">
+            <span className="pedido-card__cantidad">{p.cantidad}×</span>
+            <span className="pedido-card__nombre">{p.nombreProducto}</span>
+          </li>
+        ))}
+      </ul>
+
+      <button
+        className="pedido-card__btn"
+        onClick={handleAvanzar}
+        disabled={advancing}
+      >
+        {advancing ? "Actualizando…" : labelBoton}
+      </button>
+    </div>
+  );
+}
+=== src/hooks/usePedidos.js ===
+import { useState, useEffect, useCallback } from "react";
+import { listarPedidosYPorEstado } from "../api/pedidosApi";
+import { ESTADOS_PEDIDO } from "../utils/constants";
+ 
+const POLL_INTERVAL_MS = 15000; // refresco automático cada 15 segundos
+ 
+export function usePedidos() {
+  const [pedidosCreados, setPedidosCreados] = useState([]);
+  const [pedidosEnPreparacion, setPedidosEnPreparacion] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [lastUpdated, setLastUpdated] = useState(null);
+ 
+  const fetchPedidos = useCallback(async () => {
+    try {
+      // Dos llamadas en paralelo: una por cada estado que muestra cocina
+      const [creados, enPreparacion] = await Promise.all([
+        listarPedidosYPorEstado(ESTADOS_PEDIDO.CREADO),
+        listarPedidosYPorEstado(ESTADOS_PEDIDO.PREPARACION),
+      ]);
+      setPedidosCreados(creados);
+      setPedidosEnPreparacion(enPreparacion);
+      setError(null);
+      setLastUpdated(new Date());
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+ 
+  // Carga inicial
+  useEffect(() => {
+    fetchPedidos();
+  }, [fetchPedidos]);
+ 
+  // Polling automático cada 15 s
+  useEffect(() => {
+    const interval = setInterval(fetchPedidos, POLL_INTERVAL_MS);
+    return () => clearInterval(interval); // limpia al desmontar
+  }, [fetchPedidos]);
+ 
+  return {
+    pedidosCreados,
+    pedidosEnPreparacion,
+    loading,
+    error,
+    lastUpdated,
+    refetch: fetchPedidos, // para el botón manual
+  };
+}=== src/hooks/useProductos.js ===
+import { useState, useEffect, useCallback } from "react";
+import { listarProductos } from "../api/productosApi";
+
+// Los parámetros son opcionales. Si no se pasan, listarProductos devuelve todos los productos
+export function useProductos(activo, categoriaId, orden, tipoOrden) {
+    // Estado que almacena la lista de productos recibida del backend
+    const [productos, setProductos] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    // useCallback memoriza fetchProductos y solo la recrea si cambian los filtros
+    // Sin esto, se crearía una función nueva en cada render provocando un bucle infinito
+    const fetchProductos = useCallback(async () => {
+        try {
+            // Pasamos los filtros a listarProductos. Los que sean undefined se ignoran en la URL
+            const data = await listarProductos(activo, categoriaId, orden, tipoOrden);
+            setProductos(data);
+            setError(null);
+        } catch (e) {
+            setError(e.message);
+        } finally {
+            setLoading(false);
+        }
+    }, [activo, categoriaId, orden, tipoOrden]); // fetchProductos solo cambia si cambian los filtros
+
+    useEffect(() => {
+        fetchProductos();
+    }, [fetchProductos]); // se ejecuta cuando fetchProductos cambia, es decir cuando cambian los filtros
+
+    // Devolvemos los tres estados para que cualquier componente que use este hook
+    // pueda acceder a los productos, saber si está cargando y gestionar errores
+    return { productos, loading, error };
+}=== src/hooks/useTerminales.js ===
+import { useState, useEffect, useCallback } from "react";
+import { listarTerminales } from "../api/terminalesApi";
+
+// Hook que carga la lista de terminales disponibles desde el backend
+export function useTerminales() {
+    // Estado que almacena la lista de terminales recibida del backend
+    const [terminales, setTerminales] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    // useCallback memoriza fetchTerminales para que no se recree en cada render
+    const fetchTerminales = useCallback(async () => {
+        try {
+            const data = await listarTerminales();
+            setTerminales(data);
+            setError(null);
+        } catch (e) {
+            setError(e.message);
+        } finally {
+            setLoading(false);
+        }
+    }, []); // sin dependencias, no hay filtros que puedan cambiar
+
+    useEffect(() => {
+        fetchTerminales();
+    }, [fetchTerminales]); // se ejecuta una vez al montar el componente
+
+    // Devolvemos los tres estados para que cualquier componente que use este hook
+    // pueda acceder a las terminales, saber si está cargando y gestionar errores
+    return { terminales, loading, error };
+}=== src/index.css ===
+:root {
+  --text: #6b6375;
+  --text-h: #08060d;
+  --bg: #fff;
+  --border: #e5e4e7;
+  --code-bg: #f4f3ec;
+  --accent: #aa3bff;
+  --accent-bg: rgba(170, 59, 255, 0.1);
+  --accent-border: rgba(170, 59, 255, 0.5);
+  --social-bg: rgba(244, 243, 236, 0.5);
+  --shadow:
+    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+
+  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, Consolas, monospace;
+
+  font: 18px/145% var(--sans);
+  letter-spacing: 0.18px;
+  color-scheme: light dark;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  @media (max-width: 1024px) {
+    font-size: 16px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #9ca3af;
+    --text-h: #f3f4f6;
+    --bg: #16171d;
+    --border: #2e303a;
+    --code-bg: #1f2028;
+    --accent: #c084fc;
+    --accent-bg: rgba(192, 132, 252, 0.15);
+    --accent-border: rgba(192, 132, 252, 0.5);
+    --social-bg: rgba(47, 48, 58, 0.5);
+    --shadow:
+      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+  }
+
+  #social .button-icon {
+    filter: invert(1) brightness(2);
+  }
+}
+
+body {
+  margin: 0;
+}
+
+#root {
+  width: 1126px;
+  max-width: 100%;
+  margin: 0 auto;
+  text-align: center;
+  border-inline: 1px solid var(--border);
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+h1,
+h2 {
+  font-family: var(--heading);
+  font-weight: 500;
+  color: var(--text-h);
+}
+
+h1 {
+  font-size: 56px;
+  letter-spacing: -1.68px;
+  margin: 32px 0;
+  @media (max-width: 1024px) {
+    font-size: 36px;
+    margin: 20px 0;
+  }
+}
+h2 {
+  font-size: 24px;
+  line-height: 118%;
+  letter-spacing: -0.24px;
+  margin: 0 0 8px;
+  @media (max-width: 1024px) {
+    font-size: 20px;
+  }
+}
+p {
+  margin: 0;
+}
+
+code,
+.counter {
+  font-family: var(--mono);
+  display: inline-flex;
+  border-radius: 4px;
+  color: var(--text-h);
+}
+
+code {
+  font-size: 15px;
+  line-height: 135%;
+  padding: 4px 8px;
+  background: var(--code-bg);
+}
+=== src/main.jsx ===
+import { createRoot } from 'react-dom/client'
+import './index.css'
+import App from './App.jsx'
+import './styles/globals.css'
+
+createRoot(document.getElementById('root')).render(
+    <App />
+)
+ === src/pages/CocinaPage.jsx ===
+import { usePedidos } from "../hooks/usePedidos";
+import { cambiarEstadoDelPedido } from "../api/pedidosApi";
+import { ESTADOS_PEDIDO } from "../utils/constants";
+import ListaPedidos from "../components/vistaCocina/ListaPedidos";
+import "../styles/CocinaPage.css";
+
+export default function CocinaPage() {
+  const {
+    pedidosCreados,
+    pedidosEnPreparacion,
+    loading,
+    error,
+    lastUpdated,
+    refetch,
+  } = usePedidos();
+
+  async function handleAvanzar(pedidoId) {
+    //este pedido esta en la lista de pedidos creados?
+    const estaCreado = pedidosCreados.some((p) => p.id === pedidoId);
+    const nuevoEstado = estaCreado ? ESTADOS_PEDIDO.PREPARACION : ESTADOS_PEDIDO.LISTO;
+    await cambiarEstadoDelPedido(pedidoId, { estado: nuevoEstado });
+    await refetch();
+  }
+
+  return (
+    <div className="cocina-page">
+      <header className="cocina-header">
+        <h1 className="cocina-header__titulo">Vista Cocina</h1>
+        <div className="cocina-header__controls">
+          {lastUpdated && (
+            <span className="cocina-header__timestamp">
+              Actualizado: {lastUpdated.toLocaleTimeString()}
+            </span>
+          )}
+          <button
+            className="cocina-header__btn-refetch"
+            onClick={refetch}
+            disabled={loading}
+          >
+            {loading ? "Cargando…" : "⟳ Refrescar"}
+          </button>
+        </div>
+      </header>
+
+      {error && (
+        <div className="cocina-error">
+          ⚠ Error al cargar pedidos: {error}
+        </div>
+      )}
+
+      <div className="cocina-grid">
+        <ListaPedidos
+          titulo="Nuevos"
+          pedidos={pedidosCreados}
+          onAvanzar={handleAvanzar}
+          colorClass="cocina-columna--nuevos"
+        />
+        <ListaPedidos
+          titulo="En preparación"
+          pedidos={pedidosEnPreparacion}
+          onAvanzar={handleAvanzar}
+          colorClass="cocina-columna--preparacion"
+        />
+      </div>
+    </div>
+  );
+}
+=== src/pages/NotFoundPage.jsx ===
+import { Link } from 'react-router-dom';
+
+const NotFoundPage = () => {
+  return (
+    <div className="not-found-container">
+      <h1>404 - Página no encontrada</h1>
+      <p>¡Ups! Parece que te has perdido por la cocina.</p>
+      <p>La ruta que intentas buscar no existe en nuestro sistema.</p>
+      
+      <Link to="/" className="btn-volver">
+        Volver a la Terminal
+      </Link>
+    </div>
+  );
+};
+
+export default NotFoundPage;=== src/pages/RecogidaPage.jsx ===
+import { useState, useEffect } from 'react';
+import { listarPedidosYPorEstado, cambiarEstadoDelPedido } from '../api/pedidosApi';
+import { Loading } from '../components/common/Loading';
+import ErrorMessage from '../components/common/ErrorMessage';
+import '../styles/RecogidaPage.css';
+
+const RecogidaPage = () => {
+  const [pedidosListos, setPedidosListos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Función para traer los pedidos "LISTOS"
+  const fetchPedidosListos = async () => {
+    try {
+      const data = await listarPedidosYPorEstado('LISTO');
+      setPedidosListos(data);
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Se ejecuta al cargar la página y luego cada 15 segundos (polling)
+  useEffect(() => {
+    fetchPedidosListos();
+    const interval = setInterval(fetchPedidosListos, 15000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Al pulsar entregar, cambiamos el estado a "ENTREGADO" y recargamos
+  const handleEntregar = async (id) => {
+    try {
+      await cambiarEstadoDelPedido(id, { estado: 'ENTREGADO' });
+      fetchPedidosListos(); // Recargamos para que desaparezca de la pantalla
+    } catch (err) {
+      alert("Error al entregar: " + err.message);
+    }
+  };
+
+  if (loading) return <Loading />;
+  if (error) return <ErrorMessage message={error} />;
+
+  return (
+    <div className="recogida-container">
+      <h2>Pantalla de Recogida</h2>
+      <p>Los siguientes pedidos están listos para ser recogidos:</p>
+      
+      <div className="pedidos-listos-grid">
+        {pedidosListos.length === 0 ? (
+          <p style={{ gridColumn: '1 / -1', fontSize: '1.5rem', color: '#666' }}>
+            No hay pedidos listos en este momento.
+          </p>
+        ) : (
+          pedidosListos.map(pedido => (
+            <div key={pedido.id} className="pedido-listo-card">
+              <h1>{pedido.codigo}</h1>
+              <button className="btn-entregar" onClick={() => handleEntregar(pedido.id)}>
+                Entregado al Cliente ✓
+              </button>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default RecogidaPage;=== src/pages/TerminalPage.jsx ===
+import { useState, useMemo } from 'react';
+import { useProductos } from '../hooks/useProductos';
+import { useTerminales } from '../hooks/useTerminales';
+import { registrarPedido, agregarProductoAPedido } from '../api/pedidosApi';
+import ErrorMessage from '../components/common/ErrorMessage';
+import { Loading } from '../components/common/Loading';
+import '../styles/TerminalPage.css';
+
+const TerminalPage = () => {
+  // Terminal que el cliente ha seleccionado al entrar (null = aún no ha elegido)
+  const [terminalActiva, setTerminalActiva] = useState(null);
+
+  // Productos que el cliente ha añadido al pedido, con cantidad y subtotal calculado
+  const [carrito, setCarrito] = useState([]);
+
+  // Controla qué categorías están desplegadas en la carta
+  const [categoriasAbiertas, setCategoriasAbiertas] = useState({});
+
+  // Traemos los productos activos (true) y las terminales disponibles del backend
+  const { productos, loading: loadingProd, error: errorProd } = useProductos(true);
+  const { terminales, loading: loadingTerm, error: errorTerm } = useTerminales();
+
+  // Agrupamos la lista plana de productos en un objeto por categoría:
+  // useMemo evita recalcular esto en cada render si "productos" no ha cambiado
+  const productosAgrupados = useMemo(() => {
+    if (!productos) return {};
+    return productos.reduce((grupos, producto) => {
+      const nombreCat = producto.nombreCategoria || 'Sin Categoría';
+      if (!grupos[nombreCat]) {
+        grupos[nombreCat] = [];
+      }
+      grupos[nombreCat].push(producto);
+      return grupos;
+    }, {});
+  }, [productos]);
+
+  // Abre o cierra el acordeón de una categoría concreta sin afectar a las demás
+  const toggleCategoria = (nombreCategoria) => {
+    setCategoriasAbiertas((estadoAnterior) => ({
+      ...estadoAnterior,
+      [nombreCategoria]: !estadoAnterior[nombreCategoria]
+    }));
+  };
+
+  // Añade un producto al carrito
+  // Si ya existía, suma 1 a la cantidad y recalcula el subtotal
+  // Si es nuevo, lo añade con cantidad 1
+  const agregarAlCarrito = (producto) => {
+    setCarrito((carritoActual) => {
+      const existe = carritoActual.find(p => p.productoId === producto.id);
+      if (existe) {
+        return carritoActual.map(p =>
+          p.productoId === producto.id
+            ? { ...p, cantidad: p.cantidad + 1, subtotal: (p.cantidad + 1) * p.precioUnitario }
+            : p
+        );
+      } else {
+        return [...carritoActual, {
+          productoId: producto.id,
+          nombreProducto: producto.nombre,
+          cantidad: 1,
+          precioUnitario: producto.precio,
+          subtotal: producto.precio
+        }];
+      }
+    });
+  };
+
+  // Quita un producto del carrito por completo (no resta cantidad, lo elimina entero)
+  const eliminarDelCarrito = (productoId) => {
+    setCarrito((carritoActual) => carritoActual.filter(item => item.productoId !== productoId));
+  };
+
+  // Suma los subtotales de todos los productos del carrito para mostrar el total
+  const totalPedido = carrito.reduce((total, item) => total + item.subtotal, 0);
+
+  // Envía el pedido al backend en dos pasos:
+  // 1) crea el pedido vacío asociado a la terminal
+  // 2) añade cada producto del carrito uno a uno al pedido ya creado
+  // Envía el pedido al backend de una sola vez como exige Spring Boot
+  const handleEnviarPedido = async () => {
+    try {
+      // 1. Preparamos el formato exacto que pide el backend: { "idProducto": cantidad }
+      const productosParaBackend = {};
+      carrito.forEach(item => {
+        productosParaBackend[item.productoId] = item.cantidad;
+      });
+
+      // 2. Armamos el objeto con el id de la caja y los productos
+      const dto = {
+        terminalId: terminalActiva.id,
+        productosComprados: productosParaBackend
+      };
+
+      // 3. Lo enviamos de golpe
+      const pedidoCreado = await registrarPedido(dto);
+
+      // (Comprobación de seguridad por si el backend se queja de algo)
+      if (pedidoCreado.error || pedidoCreado.detalles) {
+        throw new Error(pedidoCreado.detalles ? pedidoCreado.detalles.join(", ") : "Datos inválidos");
+      }
+
+      // 4. Mostramos el código generado
+      alert(`¡Pedido enviado a cocina! Tu código es: ${pedidoCreado.codigo}`);
+      setCarrito([]); // vaciamos el carrito para el siguiente cliente
+      
+    } catch (e) {
+      alert("Error al enviar el pedido: " + e.message);
+    }
+  };
+
+  // Mientras cargan terminales o productos, mostramos el spinner
+  if (loadingTerm || loadingProd) return <Loading />;
+  // Si alguna de las dos llamadas falla, mostramos el mensaje de error
+  if (errorTerm) return <ErrorMessage message={errorTerm} />;
+  if (errorProd) return <ErrorMessage message={errorProd} />;
+
+  // PANTALLA 1: si todavía no se ha elegido terminal, solo mostramos los botones para seleccionarla
+  if (!terminalActiva) {
+    return (
+      <div>
+        <h2>Selecciona tu puesto de trabajo</h2>
+        <div>
+          {terminales.map(terminal => (
+            <button key={terminal.id} onClick={() => setTerminalActiva(terminal)}>
+              {terminal.nombre}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // PANTALLA 2: terminal ya seleccionada, mostramos la carta y el ticket
+  return (
+    <div>
+      <div>
+        <h2>Caja Activa: {terminalActiva.nombre}</h2>
+        {/* Permite volver a elegir terminal. Vacía el carrito para no arrastrar pedidos a medias */}
+        <button onClick={() => { setTerminalActiva(null); setCarrito([]); }}>
+          Cambiar Terminal (Vaciará el carrito)
+        </button>
+      </div>
+
+      <hr />
+
+      <div className="terminal-layout">
+
+        {/* LA CARTA: productos agrupados por categoría en acordeones plegables */}
+        <div className="terminal-layout__carta">
+          <h2>Categorías</h2>
+          {Object.entries(productosAgrupados).map(([nombreCat, listaProd]) => (
+            <div key={nombreCat} className="categoria-card">
+              <button onClick={() => toggleCategoria(nombreCat)} className="categoria-card__toggle">
+                {nombreCat} ({listaProd.length} productos) {categoriasAbiertas[nombreCat] ? '[-]' : '[+]'}
+              </button>
+
+              {/* Solo se pintan los productos si la categoría está abierta */}
+              {categoriasAbiertas[nombreCat] && (
+                <div className="categoria-card__productos">
+                  {listaProd.map((producto) => (
+                    <div key={producto.id} className="producto-card">
+                      <p>{producto.nombre} - <strong>{producto.precio.toFixed(2)} €</strong></p>
+                      <button onClick={() => agregarAlCarrito(producto)}>Añadir</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* EL TICKET: resumen del carrito con opción de quitar items y finalizar */}
+        <div className="terminal-layout__ticket">
+          <h2>Ticket de Pedido</h2>
+
+          {carrito.length === 0 ? (
+            <p>El ticket está vacío.</p>
+          ) : (
+            <>
+              <ul>
+                {carrito.map((item) => (
+                  <li key={item.productoId} className="ticket__item">
+                    {item.cantidad}x {item.nombreProducto} - {item.subtotal.toFixed(2)} €
+                    <button
+                      onClick={() => eliminarDelCarrito(item.productoId)}
+                      className="ticket__btn-eliminar"
+                    >
+                      X
+                    </button>
+                  </li>
+                ))}
+              </ul>
+
+              <h3>Total: {totalPedido.toFixed(2)} €</h3>
+
+              <button
+                onClick={handleEnviarPedido}
+                className="ticket__btn-finalizar"
+              >
+                FINALIZAR Y ENVIAR A COCINA
+              </button>
+            </>
+          )}
+        </div>
+
+      </div>
+    </div>
+  );
+};
+
+export default TerminalPage;=== src/router/AppRouter.jsx ===
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+
+import Layout from '../components/common/Layout';
+import TerminalPage from '../pages/TerminalPage';
+import CocinaPage from '../pages/CocinaPage';
+import RecogidaPage from '../pages/RecogidaPage';
+import NotFoundPage from '../pages/NotFoundPage';
+
+const AppRouter = () => {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<TerminalPage />} />
+          <Route path="cocina" element={<CocinaPage />} />
+          <Route path="recogida" element={<RecogidaPage />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  );
+};
+
+export default AppRouter;=== src/styles/CocinaPage.css ===
+/* ── Página ─────────────────────────────────────────────── */
+/* Ocupa toda la pantalla y apila cabecera + columnas verticalmente */
+.cocina-page {
+  min-height: 100vh;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Cabecera ────────────────────────────────────────────── */
+/* Barra superior con el título y el botón de refrescar */
+.cocina-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.cocina-header__titulo {
+  font-size: 20px;
+  font-weight: 500;
+  margin: 0;
+  color: var(--text-h);
+}
+
+.cocina-header__controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Muestra la hora de la última actualización */
+.cocina-header__timestamp {
+  font-size: 13px;
+  color: var(--text);
+}
+
+/* Botón de refresco manual */
+.cocina-header__btn-refetch {
+  font-size: 14px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-h);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.cocina-header__btn-refetch:hover {
+  background: var(--code-bg);
+}
+
+.cocina-header__btn-refetch:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Error ───────────────────────────────────────────────── */
+/* Mensaje de error inline dentro de la vista cocina */
+.cocina-error {
+  margin: 1rem 1.5rem 0;
+  padding: 0.75rem 1rem;
+  background: var(--accent-bg);
+  color: var(--text-h);
+  border: 1px solid var(--accent-border);
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+/* ── Grid de columnas ────────────────────────────────────── */
+/* Dos columnas iguales: Nuevos | En preparación */
+.cocina-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  flex: 1;
+  align-items: start;
+}
+
+/* En móvil las columnas se apilan */
+@media (max-width: 640px) {
+  .cocina-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Columna ─────────────────────────────────────────────── */
+/* Cada columna apila sus tarjetas verticalmente */
+.cocina-columna {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Título de la columna con el contador de pedidos */
+.cocina-columna__titulo {
+  font-size: 15px;
+  font-weight: 500;
+  margin: 0 0 0.25rem;
+  color: var(--text-h);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Badge con el número de pedidos en esa columna */
+.cocina-columna__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Contador de "Nuevos" en amarillo */
+.cocina-columna--nuevos .cocina-columna__count {
+  background: #FAEEDA;
+  color: #854F0B;
+}
+
+/* Contador de "En preparación" en azul */
+.cocina-columna--preparacion .cocina-columna__count {
+  background: #E6F1FB;
+  color: #185FA5;
+}
+
+/* Mensaje cuando no hay pedidos en esa columna */
+.cocina-columna__vacia {
+  font-size: 14px;
+  color: var(--text);
+  padding: 1.5rem 0;
+  text-align: center;
+}
+
+/* ── Tarjeta de pedido ───────────────────────────────────── */
+/* Cada pedido se muestra como una tarjeta con borde */
+.pedido-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  box-shadow: var(--shadow);
+}
+
+/* Fila superior: código del pedido + badge de estado */
+.pedido-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Código del pedido en grande */
+.pedido-card__codigo {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text-h);
+  letter-spacing: 0.03em;
+}
+
+/* ── Badges de estado ────────────────────────────────────── */
+.pedido-card__badge {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 99px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.pedido-card__badge--creado {
+  background: #FAEEDA;
+  color: #854F0B;
+}
+
+.pedido-card__badge--preparacion {
+  background: #E6F1FB;
+  color: #185FA5;
+}
+
+.pedido-card__badge--listo {
+  background: #EAF3DE;
+  color: #3B6D11;
+}
+
+/* ── Lista de productos ──────────────────────────────────── */
+/* Lista de productos del pedido separada del header por un borde */
+.pedido-card__productos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-top: 1px solid var(--border);
+  padding-top: 0.75rem;
+}
+
+.pedido-card__producto {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-h);
+}
+
+/* Cantidad en gris a la izquierda */
+.pedido-card__cantidad {
+  font-weight: 500;
+  color: var(--text);
+  min-width: 24px;
+}
+
+.pedido-card__nombre {
+  color: var(--text-h);
+}
+
+/* ── Botón avanzar estado ────────────────────────────────── */
+/* Avanza el pedido al siguiente estado: CREADO→PREPARACION→LISTO */
+.pedido-card__btn {
+  width: 100%;
+  padding: 8px 0;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-h);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.pedido-card__btn:hover:not(:disabled) {
+  background: var(--code-bg);
+}
+
+.pedido-card__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+=== src/styles/globals.css ===
+:root {
+  --color-borde: #333;
+  --color-borde-suave: #999;
+  --color-peligro: #e63946;
+  --color-primario: #aa3bff;
+}
+
+/* ── Loading ─────────────────────────────────────────────── */
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;    
+    justify-content: center; 
+    padding: 2rem;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    /* Borde gris en todos los lados excepto el superior, que es oscuro */
+    /* Esto crea el efecto visual de "un trozo del círculo" que gira */
+    border: 4px solid #ccc;
+    border-top-color: #333;
+    border-radius: 50%; /* convierte el cuadrado en círculo */
+    animation: girar 0.8s linear infinite; /* aplica la animación definida abajo */
+}
+
+/* Define la animación: rota el elemento 360 grados */
+/* linear: velocidad constante, sin aceleración ni frenada */
+/* infinite: se repite indefinidamente */
+@keyframes girar {
+    to { transform: rotate(360deg); }
+}
+
+/* ── Layout ──────────────────────────────────────────────── */
+/* Ocupa toda la altura de la pantalla y apila navbar + contenido verticalmente */
+.layout-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* El contenido principal ocupa el espacio restante tras la navbar */
+.main-content {
+  flex: 1;
+  padding: 1.5rem;
+}
+
+/* ── Navbar ──────────────────────────────────────────────── */
+/* Barra de navegación fija en la parte superior con logo y links */
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  height: 56px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Título de la app a la izquierda */
+.navbar h1 {
+  font-size: 18px;
+  margin: 0;
+}
+
+/* Lista de links sin bullets y en horizontal */
+.navbar nav ul {
+  list-style: none;
+  display: flex;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+}
+
+/* Cada link de navegación */
+.navbar nav ul li a {
+  font-size: 14px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+/* El link se resalta al pasar el ratón o cuando está activo (ruta actual) */
+.navbar nav ul li a:hover,
+.navbar nav ul li a.active {
+  background: var(--code-bg);
+  color: var(--text-h);
+}
+
+/* ── ErrorMessage ────────────────────────────────────────── */
+/* Caja de error centrada que se muestra cuando falla una petición al backend */
+.error-container {
+  margin: 2rem auto;
+  padding: 1.5rem;
+  max-width: 500px;
+  /* Fondo y borde con el color de acento del proyecto (morado) */
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 8px;
+  color: var(--text-h);
+  text-align: center;
+}
+
+.error-container h3 {
+  margin: 0 0 0.5rem;
+  font-size: 18px;
+}
+
+.error-container p {
+  font-size: 14px;
+  color: var(--text);
+}
+
+.error-container {
+  padding: 1rem;
+  color: red;
+  text-align: center;
+  background-color: #ffe6e6;
+  border: 1px solid red;
+  border-radius: 8px;
+  margin: 1rem;
+}=== src/styles/RecogidaPage.css ===
+.recogida-container {
+  padding: 2rem;
+  text-align: center;
+}
+
+.pedidos-listos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.pedido-listo-card {
+  background-color: #4caf50; /* Verde para indicar que está listo */
+  color: white;
+  padding: 3rem 1rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+}
+
+.pedido-listo-card h1 {
+  font-size: 2.5rem;
+  margin: 0 0 1.5rem 0;
+  color: white;
+}
+
+.btn-entregar {
+  background-color: white;
+  color: #4caf50;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  font-size: 1.1rem;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.btn-entregar:hover {
+  transform: scale(1.05);
+}=== src/styles/TerminalPage.css ===
+/* Contenedor principal: divide la pantalla en dos columnas, carta a la izquierda y ticket a la derecha */
+.terminal-layout {
+  display: flex;
+  gap: 2rem;
+}
+
+/* La carta ocupa el doble de espacio que el ticket (proporción 2:1) */
+.terminal-layout__carta {
+  flex: 2;
+}
+
+.terminal-layout__ticket {
+  flex: 1;
+  border-left: 2px solid var(--color-borde, black); /* separa visualmente el ticket de la carta */
+  padding-left: 1rem;
+}
+
+/* Caja de cada categorí­a en el acordeÃ³n (ej. "Bebidas", "Comida") */
+.categoria-card {
+  margin-bottom: 1rem;
+  border: 1px solid var(--color-borde, black);
+  padding: 1rem;
+}
+
+/* Botón que abre/cierra el acordeón de una categoría */
+.categoria-card__toggle {
+  width: 100%; /* ocupa todo el ancho de la categoria-card para que sea fácil de pulsar */
+  text-align: left; /* el texto no se centra, queda alineado como un tí­tulo */
+  font-weight: bold;
+}
+
+/* Grid de productos que aparece solo cuando la categorí­a está desplegada */
+.categoria-card__productos {
+  margin-top: 1rem;
+  display: grid;
+  /* auto-fit + minmax: tantas columnas como quepan de al menos 150px,
+     se adapta solo a pantallas estrechas en vez de quedar fijo en 2 columnas */
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+/* Tarjeta individual de cada producto dentro de una categorÃ­a */
+.producto-card {
+  border: 1px dotted var(--color-borde-suave, gray); /* borde punteado para diferenciarla del borde salido de categoria-card */
+  padding: 0.5rem;
+}
+
+/* Cada lí­nea del carrito en el ticket (cantidad x nombre - precio) */
+.ticket__item {
+  margin-bottom: 0.5rem;
+}
+
+/* Botón "X" para quitar un producto del carrito */
+.ticket__btn-eliminar {
+  margin-left: 10px;
+  color: var(--color-peligro, red); /* color de aviso, coherente con que es una acciÃ³n destructiva */
+  cursor: pointer;
+}
+
+/* Botón principal para enviar el pedido a cocina */
+.ticket__btn-finalizar {
+  padding: 1rem;
+  background-color: var(--color-primario, #aa3bff); /* color distintivo para que destaque como acción principal de la página */
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}=== src/utils/constants.js ===
+export const API_URL = "http://localhost:8080/api";
+
+export const ESTADOS_PEDIDO = {
+CREADO: "CREADO",
+PREPARACION: "PREPARACION",
+LISTO: "LISTO",
+PAGADO: "PAGADO",
+ENTREGADO: "ENTREGADO"
+};=== src/utils/dtos.js ===
+// Estos objetos documentan la forma exacta de los datos que devuelve el backend.
+// No se usan directamente, son solo referencia para saber qué campos existen sin tener que abrir el backend.
+
+export const ProductoDto = {
+  id: null,
+  nombre: "",
+  precio: 0,
+  activo: true,
+  nombreCategoria: "",
+};
+
+export const PedidoDto = {
+  id: null,
+  codigo: "",
+  fechaCreacion: "",
+  estado: "",
+  total: 0,
+  terminalId: null,
+  productos: [], // array de ProductosPedidoDto
+};
+
+export const ProductosPedidoDto = {
+  productoId: null,
+  nombreProducto: "",
+  cantidad: 0,
+  precioUnitario: 0,
+  subtotal: 0,
+};
+
+export const TerminalDto = {
+  id: null,
+  nombre: "",
+};
+
+export const CategoriaDto = {
+  id: null,
+  nombre: "",
+};
