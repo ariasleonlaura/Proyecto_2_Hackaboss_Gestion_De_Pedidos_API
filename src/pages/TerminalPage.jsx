@@ -1,13 +1,11 @@
 import { useState, useMemo } from 'react';
 import { useProductos } from '../hooks/useProductos';
 import { useTerminales } from '../hooks/useTerminales';
-import { registrarPedido, agregarProductoAPedido } from '../api/pedidosApi';
+import { registrarPedido } from '../api/pedidosApi';
 import ErrorMessage from '../components/common/ErrorMessage';
 import { Loading } from '../components/common/Loading';
 import '../styles/TerminalPage.css';
-import { toast } from 'sonner'
-
-
+import { toast } from 'sonner';
 
 const TerminalPage = () => {
   // Terminal que el cliente ha seleccionado al entrar (null = aún no ha elegido)
@@ -24,6 +22,7 @@ const TerminalPage = () => {
   const { terminales, loading: loadingTerm, error: errorTerm } = useTerminales();
 
   // Agrupamos la lista plana de productos en un objeto por categoría:
+  // { "Bebidas": [...], "Comida": [...] }
   // useMemo evita recalcular esto en cada render si "productos" no ha cambiado
   const productosAgrupados = useMemo(() => {
     if (!productos) return {};
@@ -69,6 +68,19 @@ const TerminalPage = () => {
     });
   };
 
+  // Sube o baja la cantidad de un producto ya en el carrito
+  const cambiarCantidad = (productoId, delta) => {
+    setCarrito((carritoActual) => {
+      return carritoActual
+        .map(p => p.productoId === productoId
+          // delta será +1 o -1 según el botón que pulse
+          ? { ...p, cantidad: p.cantidad + delta, subtotal: (p.cantidad + delta) * p.precioUnitario }
+          : p
+        )
+        .filter(p => p.cantidad > 0); // si llega a 0, se elimina
+    });
+  };
+
   // Quita un producto del carrito por completo (no resta cantidad, lo elimina entero)
   const eliminarDelCarrito = (productoId) => {
     setCarrito((carritoActual) => carritoActual.filter(item => item.productoId !== productoId));
@@ -77,37 +89,35 @@ const TerminalPage = () => {
   // Suma los subtotales de todos los productos del carrito para mostrar el total
   const totalPedido = carrito.reduce((total, item) => total + item.subtotal, 0);
 
-  // Envía el pedido al backend en dos pasos:
-  // 1) crea el pedido vacío asociado a la terminal
-  // 2) añade cada producto del carrito uno a uno al pedido ya creado
-  // Envía el pedido al backend de una sola vez como exige Spring Boot
+  // Envía el pedido al backend en una sola llamada, tal como exige CrearPedidoDto:
+  // el backend recibe terminalId y un Map<Long, Integer> con los productos y cantidades
   const handleEnviarPedido = async () => {
     try {
-      // 1. Preparamos el formato exacto que pide el backend: { "idProducto": cantidad }
+      // 1. Convertimos el carrito en el formato que pide el backend: { idProducto: cantidad }
       const productosParaBackend = {};
       carrito.forEach(item => {
         productosParaBackend[item.productoId] = item.cantidad;
       });
 
-      // 2. Armamos el objeto con el id de la caja y los productos
+      // 2. Armamos el DTO completo con la terminal y los productos
       const dto = {
         terminalId: terminalActiva.id,
         productosComprados: productosParaBackend
       };
 
-      // 3. Lo enviamos de golpe
+      // 3. Una sola llamada crea el pedido con todos sus productos
       const pedidoCreado = await registrarPedido(dto);
 
-      // (Comprobación de seguridad por si el backend se queja de algo)
+      // 4. Comprobación de seguridad por si el backend devuelve un error de validación
       if (pedidoCreado.error || pedidoCreado.detalles) {
         throw new Error(pedidoCreado.detalles ? pedidoCreado.detalles.join(", ") : "Datos inválidos");
       }
 
-      // 4. Mostramos el código generado
+      // 5. Mostramos el código generado, que el cliente usará para recoger su pedido
       toast.success(`¡Pedido enviado! Código: ${pedidoCreado.codigo}`);
 
       setCarrito([]); // vaciamos el carrito para el siguiente cliente
-      
+
     } catch (e) {
       toast.error("Error al enviar el pedido: " + e.message);
     }
@@ -155,7 +165,10 @@ const TerminalPage = () => {
           <h2>Categorías</h2>
           {Object.entries(productosAgrupados).map(([nombreCat, listaProd]) => (
             <div key={nombreCat} className="categoria-card">
-              <button onClick={() => toggleCategoria(nombreCat)} className="categoria-card__toggle">
+              <button
+                onClick={() => toggleCategoria(nombreCat)}
+                className="categoria-card__toggle"
+              >
                 {nombreCat} ({listaProd.length} productos) {categoriasAbiertas[nombreCat] ? '[-]' : '[+]'}
               </button>
 
@@ -185,7 +198,19 @@ const TerminalPage = () => {
               <ul>
                 {carrito.map((item) => (
                   <li key={item.productoId} className="ticket__item">
+                    <button
+                      onClick={() => cambiarCantidad(item.productoId, -1)}
+                      className='ticket__btn-cantidad'
+                    >
+                      -
+                    </button>
                     {item.cantidad}x {item.nombreProducto} - {item.subtotal.toFixed(2)} €
+                    <button
+                      onClick={() => cambiarCantidad(item.productoId, +1)}
+                      className='ticket__btn-cantidad'
+                    >
+                      +
+                    </button>
                     <button
                       onClick={() => eliminarDelCarrito(item.productoId)}
                       className="ticket__btn-eliminar"
@@ -209,7 +234,7 @@ const TerminalPage = () => {
         </div>
 
       </div>
-    </div>
+    </div >
   );
 };
 

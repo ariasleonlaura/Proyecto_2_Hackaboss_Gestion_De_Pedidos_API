@@ -15,7 +15,7 @@
   padding-left: 1rem;
 }
 
-/* Caja de cada categorí­a en el acordeÃ³n (ej. "Bebidas", "Comida") */
+/* Caja de cada categorí­a en el acordeón (ej. "Bebidas", "Comida") */
 .categoria-card {
   margin-bottom: 1rem;
   border: 1px solid var(--color-borde, black);
@@ -39,9 +39,9 @@
   gap: 1rem;
 }
 
-/* Tarjeta individual de cada producto dentro de una categorÃ­a */
+/* Tarjeta individual de cada producto dentro de una categorí­a */
 .producto-card {
-  border: 1px dotted var(--color-borde-suave, gray); /* borde punteado para diferenciarla del borde salido de categoria-card */
+  border: 1px dotted var(--color-borde-suave, gray); /* borde punteado para diferenciarla del borde sólido de categoria-card */
   padding: 0.5rem;
 }
 
@@ -50,10 +50,17 @@
   margin-bottom: 0.5rem;
 }
 
+/* Botones "+" y "-" para cambiar la cantidad de un producto del carrito */
+.ticket__btn-cantidad {
+  padding: 0 0.5rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+
 /* Botón "X" para quitar un producto del carrito */
 .ticket__btn-eliminar {
   margin-left: 10px;
-  color: var(--color-peligro, red); /* color de aviso, coherente con que es una acciÃ³n destructiva */
+  color: var(--color-peligro, red); /* color de aviso, coherente con que es una acción destructiva */
   cursor: pointer;
 }
 
