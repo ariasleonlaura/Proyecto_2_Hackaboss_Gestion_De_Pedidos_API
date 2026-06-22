@@ -6,7 +6,11 @@ import { Toaster } from 'sonner'
 
 createRoot(document.getElementById('root')).render(
   <>
-    <Toaster position="top-right" richColors />
+    <Toaster position="top"
+      richColors
+      closeButton
+      duration={2000}
+    />
     <App />
   </>
 )
