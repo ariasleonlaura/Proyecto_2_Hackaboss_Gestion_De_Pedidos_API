@@ -17,7 +17,7 @@ export function useProductos(activo, categoriaId, orden, tipoOrden) {
             setProductos(data);
             setError(null);
         } catch (e) {
-            setError(e.message);
+            setError("Servidor no disponible. Inténtalo de nuevo más tarde.");
         } finally {
             setLoading(false);
         }

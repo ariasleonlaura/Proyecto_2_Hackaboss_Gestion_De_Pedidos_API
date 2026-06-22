@@ -23,7 +23,7 @@ export function usePedidos() {
       setError(null);
       setLastUpdated(new Date());
     } catch (err) {
-      setError(err.message);
+      setError("Servidor no disponible. Inténtalo de nuevo más tarde.");
     } finally {
       setLoading(false);
     }
