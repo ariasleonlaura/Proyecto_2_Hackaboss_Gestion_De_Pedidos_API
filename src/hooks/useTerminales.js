@@ -15,7 +15,7 @@ export function useTerminales() {
             setTerminales(data);
             setError(null);
         } catch (e) {
-            setError(e.message);
+            setError("Servidor no disponible. Inténtalo de nuevo más tarde.");
         } finally {
             setLoading(false);
         }
