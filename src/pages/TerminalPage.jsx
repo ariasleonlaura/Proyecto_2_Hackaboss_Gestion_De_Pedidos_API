@@ -198,18 +198,19 @@ const TerminalPage = () => {
               <ul>
                 {carrito.map((item) => (
                   <li key={item.productoId} className="ticket__item">
-                    <button
-                      onClick={() => cambiarCantidad(item.productoId, -1)}
-                      className='ticket__btn-cantidad'
-                    >
-                      -
-                    </button>
                     {item.cantidad}x {item.nombreProducto} - {item.subtotal.toFixed(2)} €
+                    <br />
                     <button
                       onClick={() => cambiarCantidad(item.productoId, +1)}
                       className='ticket__btn-cantidad'
                     >
                       +
+                    </button>
+                    <button
+                      onClick={() => cambiarCantidad(item.productoId, -1)}
+                      className='ticket__btn-cantidad'
+                    >
+                      -
                     </button>
                     <button
                       onClick={() => eliminarDelCarrito(item.productoId)}
@@ -227,7 +228,7 @@ const TerminalPage = () => {
                 onClick={handleEnviarPedido}
                 className="ticket__btn-finalizar"
               >
-                FINALIZAR Y ENVIAR A COCINA
+                FINALIZAR PEDIDO
               </button>
             </>
           )}
