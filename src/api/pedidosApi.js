@@ -23,10 +23,12 @@ export async function agregarProductoAPedido(pedidoId, dto) {
 }
 
 export async function eliminarProductoDePedido(pedidoId, productoId, cantidad) {
-    const response = await fetch(`${PEDIDOS_URL}/${pedidoId}/productos/${productoId}?cantidad=${cantidad}`, 
-        {method: "DELETE"});
+    const response = await fetch(
+        `${PEDIDOS_URL}/${pedidoId}/productos/${productoId}?cantidad=${cantidad}`,
+        { method: "DELETE" }
+    );
 
-        return response.json();
+    return response.json();
 }
 
 export async function cambiarEstadoDelPedido(pedidoId, dto) {

@@ -12,6 +12,7 @@ const AppRouter = () => {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<TerminalPage />} />
+          <Route path="terminal" element={<TerminalPage />} />
           <Route path="cocina" element={<CocinaPage />} />
           <Route path="recogida" element={<RecogidaPage />} />
           <Route path="*" element={<NotFoundPage />} />

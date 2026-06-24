@@ -132,11 +132,11 @@ const TerminalPage = () => {
   // PANTALLA 1: si todavía no se ha elegido terminal, solo mostramos los botones para seleccionarla
   if (!terminalActiva) {
     return (
-      <div>
+      <div className='terminal-seleccion'>
         <h2>Selecciona tu puesto de trabajo</h2>
-        <div>
+        <div className='terminal-seleccion__terminales'>
           {terminales.map(terminal => (
-            <button key={terminal.id} onClick={() => setTerminalActiva(terminal)}>
+            <button key={terminal.id} onClick={() => setTerminalActiva(terminal)} className='terminal-seleccion__btn'>
               {terminal.nombre}
             </button>
           ))}
@@ -151,7 +151,7 @@ const TerminalPage = () => {
       <div>
         <h2>Caja Activa: {terminalActiva.nombre}</h2>
         {/* Permite volver a elegir terminal. Vacía el carrito para no arrastrar pedidos a medias */}
-        <button onClick={() => { setTerminalActiva(null); setCarrito([]); }}>
+        <button onClick={() => { setTerminalActiva(null); setCarrito([]); }} className='terminal-seleccion__btn--cambio'>
           Cambiar Terminal (Vaciará el carrito)
         </button>
       </div>
@@ -177,8 +177,9 @@ const TerminalPage = () => {
                 <div className="categoria-card__productos">
                   {listaProd.map((producto) => (
                     <div key={producto.id} className="producto-card">
-                      <p>{producto.nombre} - <strong>{producto.precio.toFixed(2)} €</strong></p>
-                      <button onClick={() => agregarAlCarrito(producto)}>Añadir</button>
+                      <p>{producto.nombre}</p>
+                      <p><strong>{producto.precio.toFixed(2)} €</strong></p>
+                      <button onClick={() => agregarAlCarrito(producto)} className='producto-card__btn'>Añadir</button>
                     </div>
                   ))}
                 </div>
@@ -198,26 +199,15 @@ const TerminalPage = () => {
               <ul>
                 {carrito.map((item) => (
                   <li key={item.productoId} className="ticket__item">
-                    {item.cantidad}x {item.nombreProducto} - {item.subtotal.toFixed(2)} €
-                    <br />
-                    <button
-                      onClick={() => cambiarCantidad(item.productoId, +1)}
-                      className='ticket__btn-cantidad'
-                    >
-                      +
-                    </button>
-                    <button
-                      onClick={() => cambiarCantidad(item.productoId, -1)}
-                      className='ticket__btn-cantidad'
-                    >
-                      -
-                    </button>
-                    <button
-                      onClick={() => eliminarDelCarrito(item.productoId)}
-                      className="ticket__btn-eliminar"
-                    >
-                      X
-                    </button>
+                    <div className="ticket__item-info">
+                      <p>{item.cantidad}x {item.nombreProducto}</p>
+                      <p><strong>{item.subtotal.toFixed(2)} €</strong></p>
+                    </div>
+                    <div className="ticket__item-acciones">
+                      <button onClick={() => cambiarCantidad(item.productoId, +1)} className='ticket__btn-cantidad'>+</button>
+                      <button onClick={() => cambiarCantidad(item.productoId, -1)} className='ticket__btn-cantidad'>-</button>
+                      <button onClick={() => eliminarDelCarrito(item.productoId)} className="ticket__btn-eliminar">X</button>
+                    </div>
                   </li>
                 ))}
               </ul>
