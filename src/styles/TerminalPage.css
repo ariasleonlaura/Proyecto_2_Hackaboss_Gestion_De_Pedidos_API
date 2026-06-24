@@ -1,0 +1,85 @@
+/* Contenedor principal: divide la pantalla en dos columnas, carta a la izquierda y ticket a la derecha */
+.terminal-layout {
+  display: flex;
+  gap: 2rem;
+}
+
+/* La carta ocupa el doble de espacio que el ticket (proporción 2:1) */
+.terminal-layout__carta {
+  flex: 2;
+}
+
+.terminal-layout__ticket {
+  flex: 1;
+  border-left: 2px solid var(--color-borde, black); /* separa visualmente el ticket de la carta */
+  padding-left: 1rem;
+}
+
+/* Caja de cada categorí­a en el acordeón (ej. "Bebidas", "Comida") */
+.categoria-card {
+  margin-bottom: 1rem;
+  border: 1px solid var(--color-borde, black);
+  padding: 1rem;
+}
+
+/* Botón que abre/cierra el acordeón de una categoría */
+.categoria-card__toggle {
+  width: 100%; /* ocupa todo el ancho de la categoria-card para que sea fácil de pulsar */
+  text-align: left; /* el texto no se centra, queda alineado como un tí­tulo */
+  font-weight: bold;
+}
+
+/* Grid de productos que aparece solo cuando la categorí­a está desplegada */
+.categoria-card__productos {
+  margin-top: 1rem;
+  display: grid;
+  /* auto-fit + minmax: tantas columnas como quepan de al menos 150px,
+     se adapta solo a pantallas estrechas en vez de quedar fijo en 2 columnas */
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+/* Tarjeta individual de cada producto dentro de una categorí­a */
+.producto-card {
+  border: 1px dotted var(--color-borde-suave, gray); /* borde punteado para diferenciarla del borde sólido de categoria-card */
+  padding: 0.5rem;
+}
+
+/* Cada lí­nea del carrito en el ticket (cantidad x nombre - precio) */
+.ticket__item {
+  margin-bottom: 0.5rem;
+}
+
+/* Tamaño base compartido para todos los botones de acción del ticket */
+.ticket__btn-cantidad,
+.ticket__btn-eliminar {
+  width: 25px;
+  height: 20px;
+  padding: 0;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* Botones "+" y "-" para cambiar la cantidad de un producto del carrito */
+.ticket__btn-cantidad {
+  padding: 0 0.5rem;
+  margin-left: 10px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* Botón "X" para quitar un producto del carrito */
+.ticket__btn-eliminar {
+  margin-left: 10px;
+  color: var(--color-peligro, red); /* color de aviso, coherente con que es una acción destructiva */
+  cursor: pointer;
+}
+
+/* Botón principal para enviar el pedido a cocina */
+.ticket__btn-finalizar {
+  padding: 1rem;
+  background-color: var(--color-primario, #aa3bff); /* color distintivo para que destaque como acción principal de la página */
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
