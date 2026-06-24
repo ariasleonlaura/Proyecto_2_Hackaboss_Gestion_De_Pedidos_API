@@ -1,8 +1,13 @@
 :root {
+  --color-texto-oscuro: #1a1f36;
   --color-borde: #333;
   --color-borde-suave: #999;
   --color-peligro: #e63946;
   --color-primario: #aa3bff;
+  --color-boton-1: #190d3c;
+  --color-boton-2: #7b52b4;
+  --borde-radio-seccion: 10px;
+  --borde-radio-boton: 5px;
 }
 
 /* ── Loading ─────────────────────────────────────────────── */
