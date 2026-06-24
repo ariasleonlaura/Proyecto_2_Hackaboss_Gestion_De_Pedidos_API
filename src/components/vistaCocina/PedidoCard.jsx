@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { cambiarEstadoDelPedido } from "../../api/pedidosApi";
+import { useState } from "react";ni
 import { ESTADOS_PEDIDO } from "../../utils/constants";
 
 export default function PedidoCard({ pedido, onAvanzar }) {

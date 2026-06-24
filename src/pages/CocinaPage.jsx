@@ -50,7 +50,7 @@ export default function CocinaPage() {
           )}
           {/* Botón de refresco manual; se desactiva mientras está cargando para evitar doble click */}
           <button
-            className="cocina-header__btn-refetch"
+            className="cocina-header__btn-actualizar"
             onClick={refetch}
             disabled={loading}
           >
