@@ -35,10 +35,10 @@ const RecogidaPage = () => {
     try {
       const nuevoEstado = estadoActual === 'LISTO' ? 'PAGADO' : 'ENTREGADO';
       await cambiarEstadoDelPedido(id, { estado: nuevoEstado });
-      
+
       toast.success(estadoActual === 'LISTO' ? '¡Pedido cobrado!' : '¡Pedido entregado con éxito!');
-      
-      fetchPedidos(); 
+
+      fetchPedidos();
     } catch (err) {
       toast.error("Error al actualizar el pedido");
     }
@@ -51,27 +51,24 @@ const RecogidaPage = () => {
     <div className="recogida-container">
       <h2>Pantalla de Recogida y Cobro</h2>
       <p>Los siguientes pedidos están pendientes de pago o entrega:</p>
-      
+
       <div className="pedidos-listos-grid">
         {pedidos.length === 0 ? (
-          <p style={{ gridColumn: '1 / -1', fontSize: '1.5rem', color: '#666' }}>
+          <p className="pedidos-listos-grid__vacio">
             No hay pedidos en esta zona en este momento.
           </p>
         ) : (
           pedidos.map(pedido => (
-            <div 
-              key={pedido.id} 
-              className="pedido-listo-card"
-              style={pedido.estado === 'PAGADO' ? { backgroundColor: '#aa3bff' } : {}}
+            <div
+              key={pedido.id}
+              className={`pedido-listo-card ${pedido.estado === 'PAGADO' ? 'pedido-listo-card--pagado' : ''}`}
             >
               <h1>{pedido.codigo}</h1>
-              
-              <p style={{ fontSize: '1.5rem', marginBottom: '1.5rem', color: 'white' }}>
+              <p className="pedido-listo-card__total">
                 Total: <strong>{pedido.total.toFixed(2)} €</strong>
               </p>
-
-              <button 
-                className="btn-entregar" 
+              <button
+                className="btn-entregar"
                 onClick={() => handleAccion(pedido.id, pedido.estado)}
               >
                 {pedido.estado === 'LISTO' ? '💶 Cobrar Pedido' : 'Entregado al Cliente ✓'}
