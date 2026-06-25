@@ -204,3 +204,34 @@
   color: var(--color-primario);
   transition: background 0.15s;
 }
+
+@media (max-width: 768px) {
+  .terminal-layout {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .terminal-layout__carta,
+  .terminal-layout__ticket {
+    width: 100%;
+  }
+
+  .terminal-layout__ticket {
+    border-left: none;
+    border-top: 2px solid var(--color-borde, black);
+    padding-left: 0;
+    padding-top: 1rem;
+  }
+
+  .terminal-seleccion__terminales {
+    width: 100%;
+  }
+
+  .categoria-card__productos {
+    grid-template-columns: 1fr;
+  }
+
+  .ticket__item {
+    width: 100%;
+  }
+}
