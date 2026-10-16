@@ -1,134 +1,222 @@
-/* Contenedor principal de la página de recogida */
+/* RecogidaPage — usa tokens de tokens.css */
+
 .recogida-container {
-  padding: 2rem;
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
 }
 
+.recogida-container > h2 {
+  font-size: var(--text-display);
+  font-weight: 700;
+}
+
+/* Barra de búsqueda */
 .busqueda-bar {
-  margin-bottom: 1rem;
-}
-
-.btn-buscar {
-  background-color: var(--color-boton-1);
-  border-radius: var(--borde-radio-boton);
-  color: var(--text-h);
-  font-size: 14px;
-  padding: 6px 14px;
-  margin-left: 6px;
-  cursor: pointer;
+  display: flex;
+  gap: var(--sp-2);
+  align-items: center;
 }
 
 .busqueda-input {
-  width: 30%;
-  font-size: 14px;
-  padding: 6px 14px;
+  flex: 1;
+  max-width: 320px;
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-btn);
+  font-size: var(--text-body);
+  background: var(--ground);
+  color: var(--ink);
+  transition: var(--transition);
 }
 
-/* Grid que distribuye las tarjetas de pedido automáticamente:
-   tantas columnas como quepan de al menos 300px,
-   expandiéndose hasta ocupar el espacio disponible */
-.pedidos-listos-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 2rem;
-  margin-top: 1rem;
+.busqueda-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
-/* Mensaje vacío cuando no hay pedidos pendientes */
-.pedidos-listos-grid__vacio {
-  /* grid-column: 1 / -1 hace que ocupe todas las columnas del grid */
-  grid-column: 1 / -1;
-  font-size: 1.5rem;
-  color: #666;
-}
-
-/* Tarjeta de cada pedido listo para recoger */
-.pedido-listo-card {
-  /* Verde por defecto para indicar que está listo */
-  background-color: #4caf50;
+.btn-buscar {
+  padding: var(--sp-3) var(--sp-5);
+  background: var(--accent);
   color: white;
-  padding: 3rem 1rem;
-  border-radius: var(--borde-radio-seccion);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  border-radius: var(--radius-btn);
+  font-weight: 600;
+  font-size: var(--text-caption);
+  transition: var(--transition);
 }
 
-/* Variante morada para pedidos ya cobrados (estado PAGADO) */
-.pedido-listo-card--pagado {
-  background-color: #aa3bff;
+.btn-buscar:hover {
+  background: var(--accent-hover);
 }
 
-/* Tarjeta del pedido buscado: reutiliza .pedido-listo-card. Está fuera del grid,
-   así que se limita el ancho y se centra para que mida como las de la lista */
-.pedido-listo-card--busqueda {
-  max-width: 600px;
-  min-width: 300px;
-  margin: 2rem auto 2rem;
-}
-
-/* Pedido buscado que no está en LISTO ni PAGADO: gris, no hay acción posible aquí */
-.pedido-listo-card--sin-accion {
-  background-color: #6b7280;
-}
-
-/* Botones apilados y centrados dentro de la tarjeta */
-.acciones-card {
+/* Tarjeta de pedido encontrado */
+.pedido-encontrado-card {
+  background: var(--surface);
+  border-radius: var(--radius-section);
+  padding: var(--sp-6);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 1rem;
+  gap: var(--sp-3);
 }
 
-/* Cancelar: transparente con borde blanco, para convivir con btn-entregar */
-.btn-cancelar-busqueda {
-  background-color: white;
-  color: #4caf50;
-  border: 2px solid white;
-  padding: 0.6rem 1.5rem;
-  font-size: 1.1rem;
-  font-weight: bold;
-  border-radius: var(--borde-radio-boton);
-  cursor: pointer;
+.pedido-encontrado-card h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  font-family: ui-monospace, 'Cascadia Code', monospace;
 }
 
-/* Código del pedido en grande */
-.pedido-listo-card h1 {
-  font-size: 2rem;
-  margin: 0 0 1.5rem 0;
-  color: white;
-  /* overflow-wrap y word-break permiten partir el texto si no cabe en el recuadro */
-  overflow-wrap: break-word;
-  word-break: break-all;
-  /* line-height: 1.2 evita que las líneas se aplasten entre sí si hay salto */
-  line-height: 1.2;
+.pedido-encontrado-card__total {
+  font-size: var(--text-body);
 }
 
-/* Total del pedido destacado debajo del código */
-.pedido-listo-card__total {
-  font-size: 1.5rem;
-  margin-bottom: 1.5rem;
-  color: white;
+.pedido-encontrado-card__total strong {
+  color: var(--accent);
+  font-size: 1.25rem;
 }
 
-/* Botón de acción para cobrar o marcar como entregado */
+.acciones-card {
+  display: flex;
+  gap: var(--sp-3);
+  margin-top: var(--sp-2);
+}
+
 .btn-entregar {
-  /* Fondo blanco con texto verde para contrastar con la tarjeta */
-  background-color: white;
-  color: #4caf50;
-  border: none;
-  padding: 0.8rem 1.5rem;
-  font-size: 1.1rem;
-  font-weight: bold;
-  border-radius: var(--borde-radio-boton);
-  cursor: pointer;
-  transition: transform 0.2s;
+  flex: 1;
+  padding: var(--sp-3);
+  background: var(--accent);
+  color: white;
+  border-radius: var(--radius-btn);
+  font-weight: 600;
+  font-size: var(--text-caption);
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
 }
 
-/* En tarjetas PAGADO el botón tiene texto morado para contrastar con el fondo blanco */
-.pedido-listo-card--pagado .btn-entregar {
-  color: #aa3bff;
-}
-
-/* Efecto de escala al pasar el ratón para dar feedback visual */
 .btn-entregar:hover {
-  transform: scale(1.05);
+  background: var(--accent-hover);
+}
+
+.btn-cancelar-busqueda {
+  padding: var(--sp-3) var(--sp-4);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-btn);
+  font-weight: 600;
+  font-size: var(--text-caption);
+  color: var(--ink-soft);
+  transition: var(--transition);
+}
+
+.btn-cancelar-busqueda:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Grid de pedidos */
+.pedidos-listos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--sp-4);
+}
+
+.pedidos-listos-grid__vacio {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: var(--ink-mute);
+  font-size: var(--text-caption);
+  padding: var(--sp-8);
+}
+
+/* Tarjeta de pedido listo */
+.pedido-listo-card {
+  background: var(--surface);
+  border-radius: var(--radius-section);
+  padding: var(--sp-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.pedido-listo-card h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-family: ui-monospace, 'Cascadia Code', monospace;
+  word-break: break-all;
+}
+
+.pedido-listo-card__total {
+  font-size: var(--text-body);
+}
+
+.pedido-listo-card__total strong {
+  color: var(--accent);
+}
+
+.pedido-listo-card--listo {
+  background: var(--st-listo-bg);
+  border-left: 3px solid var(--st-listo);
+}
+
+.pedido-listo-card--listo .pedido-listo-card__total strong {
+  color: var(--st-listo);
+}
+
+.pedido-listo-card--listo .btn-entregar {
+  background: transparent;
+  color: var(--st-listo);
+  border: 1px solid var(--st-listo);
+}
+
+.pedido-listo-card--listo .btn-entregar:hover {
+  background: var(--st-listo);
+  color: white;
+}
+
+.pedido-listo-card--pagado {
+  background: var(--st-entregado-bg);
+  border-left: 3px solid var(--st-entregado);
+}
+
+.pedido-listo-card--pagado .pedido-listo-card__total strong {
+  color: var(--st-entregado);
+}
+
+.pedido-listo-card--pagado .btn-entregar {
+  background: transparent;
+  color: var(--st-entregado);
+  border: 1px solid var(--st-entregado);
+}
+
+.pedido-listo-card--pagado .btn-entregar:hover {
+  background: var(--st-entregado);
+  color: white;
+}
+
+.pedido-listo-card--busqueda {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .pedidos-listos-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .busqueda-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .busqueda-input {
+    max-width: none;
+  }
+
+  .acciones-card {
+    flex-direction: column;
+  }
 }

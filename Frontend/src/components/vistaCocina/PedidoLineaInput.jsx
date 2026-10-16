@@ -2,6 +2,7 @@ import { useState } from "react";
 import { agregarProductoAPedido, eliminarProductoDePedido } from "../../api/pedidosApi";
 import { ESTADOS_PEDIDO } from "../../utils/constants";
 import { toast } from "sonner";
+import { Minus, Plus } from "lucide-react";
 
 export default function PedidoLineaInput({ pedidoId, productoId, cantidadActual, pedidoEstado, onCambio }) {
   const [modificando, setModificando] = useState(false);
@@ -29,12 +30,11 @@ export default function PedidoLineaInput({ pedidoId, productoId, cantidadActual,
     }
   };
 
+  /* Deshabilita los botones en los pedidos de la columa "En preparación" */
   if (pedidoEstado !== ESTADOS_PEDIDO.CREADO) {
     return (
       <div className="pedido-linea-input-disabled">
-        <span className="pedido-linea-input-cantidad">
-          {cantidadActual} ×
-        </span>
+        <span className="pedido-linea-input-cantidad"> {cantidadActual} ×</span>
       </div>
     );
   }
@@ -47,7 +47,7 @@ export default function PedidoLineaInput({ pedidoId, productoId, cantidadActual,
         disabled={modificando}
         title="Añadir unidad"
       >
-        +
+        <Plus size={14} />
       </button>
       <button
         className="pedido-linea-input-btn-minus"
@@ -55,7 +55,7 @@ export default function PedidoLineaInput({ pedidoId, productoId, cantidadActual,
         disabled={modificando}
         title="Quitar unidad"
       >
-        −
+        <Minus size={14} />
       </button>
       <span className="pedido-linea-input-cantidad">{cantidadActual} ×</span>
     </div>

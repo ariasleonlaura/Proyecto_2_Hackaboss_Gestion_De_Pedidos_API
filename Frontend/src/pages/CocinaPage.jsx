@@ -5,6 +5,7 @@ import { usePedidosPorEstados } from "../hooks/usePedidosPorEstados";
 import { cambiarEstadoDelPedido } from "../api/pedidosApi";
 import { ESTADOS_PEDIDO } from "../utils/constants";
 import ListaPedidos from "../components/vistaCocina/ListaPedidos";
+import { RotateCw } from "lucide-react";
 import "../styles/CocinaPage.css";
 
 export default function CocinaPage() {
@@ -37,7 +38,7 @@ export default function CocinaPage() {
   return (
     <div className="cocina-page">
       <header className="cocina-header">
-        <h1 className="cocina-header__titulo">Vista Cocina</h1>
+        <h1 className="cocina-header__titulo">Pantalla de Cocina</h1>
         <div className="cocina-header__controls">
           {/* Solo mostramos la hora si ya se ha hecho al menos una carga */}
           {lastUpdated && (
@@ -51,7 +52,13 @@ export default function CocinaPage() {
             onClick={refetch}
             disabled={loading}
           >
-            {loading ? "Cargando…" : "⟳ Refrescar"}
+            {loading ? (
+              "Cargando…"
+            ) : (
+              <>
+                <RotateCw size={16} /> Refrescar
+              </>
+            )}
           </button>
         </div>
       </header>
@@ -62,11 +69,11 @@ export default function CocinaPage() {
       {/* Dos columnas: una por cada estado que gestiona cocina */}
       <div className="cocina-grid">
         <ListaPedidos
-          titulo="Nuevos"
+          titulo="En espera"
           pedidos={pedidosCreados}
           onAvanzar={handleAvanzar}
           onRefetch={refetch}
-          colorClass="cocina-columna--nuevos"
+          colorClass="cocina-columna--espera"
         />
         <ListaPedidos
           titulo="En preparación"

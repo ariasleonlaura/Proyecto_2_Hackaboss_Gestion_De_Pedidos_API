@@ -6,6 +6,7 @@ import {
 } from "../api/pedidosApi";
 import { Loading } from "../components/common/Loading";
 import ErrorMessage from "../components/common/ErrorMessage";
+import { Euro, Package } from "lucide-react";
 import "../styles/RecogidaPage.css";
 import { toast } from "sonner";
 import { ESTADOS_PEDIDO } from "../utils/constants";
@@ -19,10 +20,10 @@ const claseSegunEstado = (estado) => {
 
 const handleAccion = async (id, estadoActual) => {
   try {
-    const nuevoEstado = estadoActual === "LISTO" ? "PAGADO" : "ENTREGADO";
+    const nuevoEstado = estadoActual === ESTADOS_PEDIDO.LISTO ? ESTADOS_PEDIDO.PAGADO : ESTADOS_PEDIDO.ENTREGADO;
     await cambiarEstadoDelPedido(id, { estado: nuevoEstado });
     toast.success(
-      estadoActual === "LISTO"
+      estadoActual === ESTADOS_PEDIDO.LISTO
         ? "¡Pedido cobrado!"
         : "¡Pedido entregado con éxito!",
     );
@@ -34,7 +35,7 @@ const handleAccion = async (id, estadoActual) => {
 };
 
 const RecogidaPage = () => {
-  const { pedidos, loading, error } = usePedidosPorEstados(["LISTO", "PAGADO"]);
+  const { pedidos, loading, error } = usePedidosPorEstados([ESTADOS_PEDIDO.LISTO, ESTADOS_PEDIDO.PAGADO]);
   const [codigoBusqueda, setCodigoBusqueda] = useState("");
   const [mostrarPedidoEncontrado, setMostrarPedidoEncontrado] = useState(false);
   const [pedidoEncontrado, setPedidoEncontrado] = useState(null);
@@ -68,7 +69,7 @@ const RecogidaPage = () => {
 
   return (
     <div className="recogida-container">
-      <h2>Pantalla de Recogida y Cobro</h2>
+      <h2>Pantalla de Cobro y Recogida</h2>
 
       <div className="busqueda-bar">
         <input
@@ -136,7 +137,7 @@ const RecogidaPage = () => {
           pedidos.map((pedido) => (
             <div
               key={pedido.id}
-              className={`pedido-listo-card ${pedido.estado === "PAGADO" ? "pedido-listo-card--pagado" : ""}`}
+              className={`pedido-listo-card ${pedido.estado === ESTADOS_PEDIDO.PAGADO ? "pedido-listo-card--pagado" : "pedido-listo-card--listo"}`}
             >
               <h1>{pedido.codigo}</h1>
               <p className="pedido-listo-card__total">
@@ -146,9 +147,15 @@ const RecogidaPage = () => {
                 className="btn-entregar"
                 onClick={() => handleAccion(pedido.id, pedido.estado)}
               >
-                {pedido.estado === "LISTO"
-                  ? "💶 Cobrar Pedido"
-                  : "Entregado al Cliente ✓"}
+                {pedido.estado === ESTADOS_PEDIDO.LISTO ? (
+                  <>
+                    <Euro size={16} /> Cobrar Pedido
+                  </>
+                ) : (
+                  <>
+                    <Package size={16} /> Entregado al Cliente
+                  </>
+                )}
               </button>
             </div>
           ))

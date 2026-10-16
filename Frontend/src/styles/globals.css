@@ -1,138 +1,152 @@
-:root {
-  --color-texto-oscuro: #1a1f36;
-  --color-borde: #333;
-  --color-borde-suave: #999;
-  --color-peligro: #e63946;
-  --color-primario: #aa3bff;
-  --color-boton-1: #190d3c;
-  --color-boton-2: #7b52b4;
-  --borde-radio-seccion: 10px;
-  --borde-radio-boton: 5px;
-}
+/* Componentes compartidos — usan tokens de tokens.css */
 
-/* ── Loading ─────────────────────────────────────────────── */
-.loading-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;    
-    justify-content: center; 
-    padding: 2rem;
-}
-
-.spinner {
-    width: 40px;
-    height: 40px;
-    /* Borde gris en todos los lados excepto el superior, que es oscuro */
-    /* Esto crea el efecto visual de "un trozo del círculo" que gira */
-    border: 4px solid #ccc;
-    border-top-color: #333;
-    border-radius: 50%; /* convierte el cuadrado en círculo */
-    animation: girar 0.8s linear infinite; /* aplica la animación definida abajo */
-}
-
-/* Define la animación: rota el elemento 360 grados */
-/* linear: velocidad constante, sin aceleración ni frenada */
-/* infinite: se repite indefinidamente */
-@keyframes girar {
-    to { transform: rotate(360deg); }
-}
-
-/* ── Layout ──────────────────────────────────────────────── */
-/* Ocupa toda la altura de la pantalla y apila navbar + contenido verticalmente */
+/* Layout */
 .layout-container {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  min-height: 100svh;
 }
 
-/* El contenido principal ocupa el espacio restante tras la navbar */
 .main-content {
   flex: 1;
-  padding: 1.5rem;
+  padding: var(--sp-6);
+  max-width: 1280px;
+  width: 100%;
+  margin: 0 auto;
 }
 
-/* ── Navbar ──────────────────────────────────────────────── */
-/* Barra de navegación fija en la parte superior con logo y links */
+/* Navbar — barra limpia, sin chrome */
 .navbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 1.5rem;
   height: 56px;
-  border-bottom: 1px solid var(--border);
+  padding: 0 var(--sp-6);
+  border-bottom: 1px solid var(--line);
+  background: var(--ground);
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
-/* Título de la app a la izquierda */
 .navbar h1 {
-  font-size: 18px;
-  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--ink);
 }
 
-/* Lista de links sin bullets y en horizontal */
 .navbar nav ul {
-  list-style: none;
   display: flex;
-  gap: 0.5rem;
-  margin: 0;
-  padding: 0;
+  gap: var(--sp-6);
 }
 
-/* Cada link de navegación */
 .navbar nav ul li a {
-  font-size: 14px;
-  padding: 6px 14px;
-  border-radius: 6px;
-  color: var(--text);
-  text-decoration: none;
+  font-size: var(--text-caption);
+  font-weight: 500;
+  color: var(--ink-soft);
+  padding: var(--sp-2) var(--sp-1);
+  border-radius: var(--radius-btn);
+  transition: var(--transition);
 }
 
-/* El link se resalta al pasar el ratón o cuando está activo (ruta actual) */
-.navbar nav ul li a:hover,
+.navbar nav ul li a:hover {
+  color: var(--ink);
+  background: var(--surface);
+}
+
 .navbar nav ul li a.active {
-  background: var(--code-bg);
-  color: var(--text-h);
+  color: var(--accent);
+  font-weight: 600;
 }
 
-/* ── ErrorMessage ────────────────────────────────────────── */
-/* Caja de error centrada que se muestra cuando falla una petición al backend */
+/* Loading */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: var(--sp-16);
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--line);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: girar 0.8s linear infinite;
+}
+
+@keyframes girar {
+  to { transform: rotate(360deg); }
+}
+
+/* Error */
 .error-container {
-  margin: 2rem auto;
-  padding: 1.5rem;
-  max-width: 500px;
-  /* Fondo y borde con el color de acento del proyecto (morado) */
-  background: var(--accent-bg);
-  border: 1px solid var(--accent-border);
-  border-radius: 8px;
-  color: var(--text-h);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-8);
+  background: var(--danger-soft);
+  border-radius: var(--radius-section);
   text-align: center;
 }
 
 .error-container h3 {
-  margin: 0 0 0.5rem;
-  font-size: 18px;
+  color: var(--danger);
+  font-weight: 600;
 }
 
 .error-container p {
-  font-size: 14px;
-  color: var(--text);
+  color: var(--ink-soft);
+  font-size: var(--text-caption);
 }
 
-html,
-body {
-  max-width: 100%;
-  overflow-x: hidden;
+/* Botones base */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-4);
+  border-radius: var(--radius-btn);
+  font-weight: 600;
+  font-size: var(--text-caption);
+  transition: var(--transition);
+  border: none;
+  cursor: pointer;
 }
 
-* {
-  box-sizing: border-box;
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-/* Contraste para el modo Dark Mode */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-boton-1: #6d28d9; /* morado más claro para que contraste con el fondo oscuro */
-    --color-boton-2: #a78bfa; /* violeta claro */
-    --color-borde: #6d28d9;
-    --color-borde-suave: #a78bfa;
-  }
+.btn-primary {
+  background: var(--accent);
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.btn-secondary {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--line);
+}
+
+.btn-danger {
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: var(--danger-soft);
 }

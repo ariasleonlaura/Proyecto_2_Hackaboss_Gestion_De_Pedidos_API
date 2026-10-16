@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ESTADOS_PEDIDO } from "../../utils/constants";
 import PedidoLineaInput from "./PedidoLineaInput";
+import { Play, Check } from "lucide-react";
 
 export default function PedidoCard({ pedido, onAvanzar, onRefetch }) {
   //el botón esta trabajando?
@@ -16,12 +17,18 @@ export default function PedidoCard({ pedido, onAvanzar, onRefetch }) {
   }
 
   const labelBoton =
-    pedido.estado === ESTADOS_PEDIDO.CREADO
-      ? "▶ Iniciar preparación"
-      : "✔ Marcar como listo";
+    pedido.estado === ESTADOS_PEDIDO.CREADO ? (
+      <>
+        <Play size={16} /> Iniciar preparación
+      </>
+    ) : (
+      <>
+        <Check size={16} /> Marcar como listo
+      </>
+    );
 
   return (
-    <div className="pedido-card">
+    <div className={`pedido-card pedido-card--${pedido.estado}`}>
       <header className="pedido-card__header">
         <span className="pedido-card__codigo">{pedido.codigo}</span>
         <span className={`pedido-card__badge pedido-card__badge--${pedido.estado.toLowerCase()}`}>

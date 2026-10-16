@@ -13,8 +13,9 @@ La aplicación no contiene lógica de negocio, sino que consume los endpoints ex
 * Vite
 * React Router DOM
 * Fetch API
-* CSS
+* CSS (BEM, tokens en `styles/tokens.css`)
 * Sonner
+* Lucide (iconos)
 
 ## Arquitectura del proyecto
 

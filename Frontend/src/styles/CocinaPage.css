@@ -1,281 +1,338 @@
-/* ── Página ─────────────────────────────────────────────── */
-/* Ocupa toda la pantalla y apila cabecera + columnas verticalmente */
+/* CocinaPage — usa tokens de tokens.css */
+
 .cocina-page {
-  min-height: 100vh;
-  background: var(--bg);
   display: flex;
   flex-direction: column;
+  gap: var(--sp-6);
 }
 
-/* ── Cabecera ────────────────────────────────────────────── */
-/* Barra superior con el título y el botón de refrescar */
+/* Header */
 .cocina-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: var(--sp-4);
 }
 
 .cocina-header__titulo {
-  font-size: 20px;
-  font-weight: 500;
-  margin: 0;
-  color: var(--text-h);
+  font-size: var(--text-display);
+  font-weight: 700;
 }
 
 .cocina-header__controls {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: var(--sp-4);
 }
 
-/* Muestra la hora de la última actualización */
 .cocina-header__timestamp {
-  font-size: 13px;
-  color: var(--text);
+  font-size: var(--text-caption);
+  color: var(--ink-mute);
 }
 
-/* Botón de refresco manual */
 .cocina-header__btn-actualizar {
-  background-color: var(--color-boton-1);
-  border-radius: var(--borde-radio-boton);
-  color: var(--text-h);
-  font-size: 14px;
-  padding: 6px 14px;
-  cursor: pointer;
+  padding: var(--sp-2) var(--sp-4);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-btn);
+  font-size: var(--text-caption);
+  font-weight: 600;
+  color: var(--ink);
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
 }
 
-.cocina-header__btn-actualizar:hover {
-  background-color: var(--text-h);
-  color: var(--color-boton-1);
-  transition: background 0.15s;
+.cocina-header__btn-actualizar:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
-.cocina-header__btn-actualizar:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* ── Grid de columnas ────────────────────────────────────── */
-/* Dos columnas iguales: Nuevos | En preparación */
+/* Grid de columnas */
 .cocina-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-  padding: 1.5rem;
-  flex: 1;
+  gap: var(--sp-6);
   align-items: start;
 }
 
-/* En móvil las columnas se apilan */
-@media (max-width: 640px) {
-  .cocina-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* ── Columna ─────────────────────────────────────────────── */
-/* Cada columna apila sus tarjetas verticalmente */
+/* Columna */
 .cocina-columna {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--sp-4);
 }
 
-/* Título de la columna con el contador de pedidos */
 .cocina-columna__titulo {
-  font-size: 15px;
-  font-weight: 500;
-  margin: 0 0 0.25rem;
-  color: var(--text-h);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--sp-2);
+  font-size: 1.25rem;
+  font-weight: 600;
 }
 
-/* Badge con el número de pedidos en esa columna */
 .cocina-columna__count {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 22px;
-  height: 22px;
-  padding: 0 6px;
-  border-radius: 99px;
-  font-size: 12px;
-  font-weight: 500;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 var(--sp-2);
+  border-radius: 999px;
+  font-size: var(--text-caption);
+  font-weight: 700;
 }
 
-/* Contador de "Nuevos" en amarillo */
-.cocina-columna--nuevos .cocina-columna__count {
-  background: #FAEEDA;
-  color: #854F0B;
+.cocina-columna--espera .cocina-columna__count {
+  background: var(--st-creado-bg);
+  color: var(--st-creado);
 }
 
-/* Contador de "En preparación" en azul */
 .cocina-columna--preparacion .cocina-columna__count {
-  background: #E6F1FB;
-  color: #185FA5;
+  background: var(--st-preparacion-bg);
+  color: var(--st-preparacion);
 }
 
-/* Mensaje cuando no hay pedidos en esa columna */
 .cocina-columna__vacia {
-  font-size: 14px;
-  color: var(--text);
-  padding: 1.5rem 0;
+  color: var(--ink-mute);
+  font-size: var(--text-caption);
+  padding: var(--sp-4);
   text-align: center;
 }
 
-/* ── Tarjeta de pedido ───────────────────────────────────── */
-/* Cada pedido se muestra como una tarjeta con borde */
+/* Tarjeta de pedido */
 .pedido-card {
-  background-color: #d1c9e1;
-  color: #1a1f36;
-  border: 1px solid var(--border);
-  border-radius: var(--borde-radio-seccion);
-  padding: 1rem 1.25rem;
+  background: var(--surface);
+  border-radius: var(--radius-section);
+  padding: var(--sp-4);
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  box-shadow: var(--shadow);
+  gap: var(--sp-3);
 }
 
-/* Fila superior: código del pedido + badge de estado */
 .pedido-card__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--sp-2);
 }
 
-/* Código del pedido en grande */
 .pedido-card__codigo {
-  font-size: 18px;
-  font-weight: 500;
-  color: var(--color-texto-oscuro);
-  letter-spacing: 0.03em;
+  font-weight: 600;
+  font-size: var(--text-caption);
+  font-family: ui-monospace, 'Cascadia Code', monospace;
 }
 
-/* ── Badges de estado ────────────────────────────────────── */
 .pedido-card__badge {
-  font-size: 11px;
-  font-weight: 500;
-  padding: 3px 10px;
-  border-radius: 99px;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
 }
 
-.pedido-card__badge--creado {
-  background: #FAEEDA;
-  color: #854F0B;
+.pedido-card__badge--CREADO {
+  background: var(--st-creado-bg);
+  color: var(--st-creado);
 }
 
-.pedido-card__badge--preparacion {
-  background: #E6F1FB;
-  color: #185FA5;
+.pedido-card__badge--PREPARACION {
+  background: var(--st-preparacion-bg);
+  color: var(--st-preparacion);
 }
 
-.pedido-card__badge--listo {
-  background: #EAF3DE;
-  color: #3B6D11;
+/* Cantidad texto por estado - seguimos la misma que CREADO */
+.pedido-card--PREPARACION .pedido-card__cantidad {
+  color: var(--st-preparacion);
 }
 
-/* ── Lista de productos ──────────────────────────────────── */
-/* Lista de productos del pedido separada del header por un borde */
+.pedido-card__badge--LISTO {
+  background: var(--st-listo-bg);
+  color: var(--st-listo);
+}
+
+.pedido-card__badge--PAGADO {
+  background: var(--st-pagado-bg);
+  color: var(--st-pagado);
+}
+
+.pedido-card__badge--ENTREGADO {
+  background: var(--st-entregado-bg);
+  color: var(--st-entregado);
+}
+
 .pedido-card__productos {
   display: flex;
   flex-direction: column;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  gap: 4px;
-  border-top: 1px solid var(--border);
-  padding-top: 0.75rem;
+  gap: var(--sp-2);
 }
 
 .pedido-card__producto {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  color: var(--text-h);
+  gap: var(--sp-3);
 }
 
-/* Cantidad en gris a la izquierda */
 .pedido-card__cantidad {
-  font-weight: 500;
-  color: var(--color-texto-oscuro);
-  min-width: 24px;
+  font-weight: 700;
+  font-size: var(--text-caption);
+  color: var(--ink);
+  min-width: 2rem;
+  text-align: center;
 }
 
 .pedido-card__nombre {
-  color: var(--color-texto-oscuro);
+  font-size: var(--text-caption);
+  color: var(--ink);
 }
 
-/* ── Botón avanzar estado ────────────────────────────────── */
-/* Avanza el pedido al siguiente estado: CREADO→PREPARACION→LISTO */
 .pedido-card__btn {
+  margin-top: auto;
   width: 100%;
-  padding: 8px 0;
-  font-size: 14px;
-  font-weight: 500;
-  border-radius: var(--borde-radio-boton);
-  border: 1px solid var(--border);
-  background-color: var(--color-boton-1);
-  color: var(--text-h);
-  cursor: pointer;
-  transition: background 0.15s;
+  padding: var(--sp-3);
+  background: var(--accent);
+  color: white;
+  border-radius: var(--radius-btn);
+  font-weight: 600;
+  font-size: var(--text-caption);
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
 }
 
 .pedido-card__btn:hover:not(:disabled) {
-  background-color: var(--text-h);
-  color: var(--color-boton-1);
-  transition: background 0.15s;
+  background: var(--accent-hover);
 }
 
-.pedido-card__btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+/* Variantes temáticas por estado */
+.pedido-card--CREADO {
+  background: var(--st-creado-bg);
+  border-left: 3px solid var(--st-creado);
 }
 
-/* ── Cantidad de cada línea del pedido (botones +/− y texto "N ×") ── */
-/* Botones y cantidad en fila, con un pequeño hueco entre todos */
+.pedido-card--CREADO .pedido-card__codigo {
+  color: var(--st-creado);
+}
+
+.pedido-card--CREADO .pedido-card__btn {
+  background: transparent;
+  color: var(--st-creado);
+  border: 1px solid var(--st-creado);
+}
+
+.pedido-card--CREADO .pedido-card__btn:hover:not(:disabled) {
+  background: var(--st-creado);
+  color: white;
+}
+
+.pedido-card--PREPARACION {
+  background: var(--st-preparacion-bg);
+  border-left: 3px solid var(--st-preparacion);
+}
+
+.pedido-card--PREPARACION .pedido-card__codigo {
+  color: var(--st-preparacion);
+}
+
+.pedido-card--PREPARACION .pedido-card__btn {
+  background: transparent;
+  color: var(--st-preparacion);
+  border: 1px solid var(--st-preparacion);
+}
+
+.pedido-card--PREPARACION .pedido-card__btn:hover:not(:disabled) {
+  background: var(--st-preparacion);
+  color: white;
+}
+
+/* Input de línea de pedido */
 .pedido-linea-input {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--sp-1);
 }
 
-/* Mismo color y peso que el nombre del producto (en las dos ramas del componente) */
-.pedido-linea-input-cantidad {
-  color: var(--color-texto-oscuro);
-  font-weight: 500;
-}
-
-/* Margen extra entre los botones y la cantidad. Solo en la rama con botones,
-   para no desalinear el "4 ×" de los pedidos en preparación */
-.pedido-linea-input .pedido-linea-input-cantidad {
-  margin-left: 0.5rem;
-}
-
+.pedido-linea-input-btn-minus,
 .pedido-linea-input-btn-plus {
-  border-radius: var(--borde-radio-boton);
-  background-color: var(--color-boton-2);
-  font-weight: bold;
-  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-btn);
+  background: transparent;
+  font-weight: 700;
+  font-size: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: var(--transition);
+  flex-shrink: 0;
 }
 
-.pedido-linea-input-btn-minus {
-  
-  border-radius: var(--borde-radio-boton);
-  background-color: var(--color-boton-2);
-  font-weight: bold;
-  cursor: pointer;
+.pedido-card--CREADO .pedido-linea-input-btn-minus,
+.pedido-card--CREADO .pedido-linea-input-btn-plus {
+  color: var(--st-creado);
+  border: 1px solid var(--st-creado);
+}
+
+.pedido-card--CREADO .pedido-linea-input-btn-minus:hover:not(:disabled),
+.pedido-card--CREADO .pedido-linea-input-btn-plus:hover:not(:disabled) {
+  background: var(--st-creado);
+  color: white;
+}
+
+.pedido-card--PREPARACION .pedido-linea-input-btn-minus,
+.pedido-card--PREPARACION .pedido-linea-input-btn-plus {
+  color: var(--st-preparacion);
+  border: 1px solid var(--st-preparacion);
+}
+
+.pedido-card--PREPARACION .pedido-linea-input-btn-minus:hover:not(:disabled),
+.pedido-card--PREPARACION .pedido-linea-input-btn-plus:hover:not(:disabled) {
+  background: var(--st-preparacion);
+  color: white;
+}
+
+.pedido-linea-input-btn-minus:disabled,
+.pedido-linea-input-btn-plus:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pedido-linea-input-cantidad {
+  font-weight: 700;
+  font-size: var(--text-caption);
+  color: var(--ink);
+  min-width: 2.5rem;
+  text-align: center;
+}
+
+.pedido-linea-input-disabled {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: var(--sp-2);
+}
+
+.pedido-linea-input-disabled .pedido-linea-input-cantidad {
+  color: var(--ink-mute);
+}
+
+/* Cantidad en estado PREPARACION - color de tema en lugar de gris */
+.pedido-card--PREPARACION .pedio-linea-input-disabled .pedido-linea-input-cantidad {
+  color: var(--st-preparacion);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .cocina-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cocina-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }

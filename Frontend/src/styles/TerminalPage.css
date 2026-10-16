@@ -1,127 +1,159 @@
+/* TerminalPage — usa tokens de tokens.css */
+
 .terminal-seleccion {
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: var(--sp-8);
+  padding: var(--sp-16);
+}
+
+.terminal-seleccion h2 {
+  font-size: var(--text-display);
+  text-align: center;
 }
 
 .terminal-seleccion__terminales {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  width: 40%;
-  margin-top: 20px;
-  background: var(--bg);
-  color: var(--text-h);
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--sp-4);
+  width: 100%;
+  max-width: 600px;
 }
 
 .terminal-seleccion__btn {
-  background-color: var(--color-boton-1);
-  border-radius: var(--borde-radio-boton);
-  padding: 10px;
-  cursor: pointer;
+  padding: var(--sp-6);
+  background: var(--surface);
+  border-radius: var(--radius-section);
+  font-size: var(--text-body);
+  font-weight: 600;
+  color: var(--ink);
+  transition: var(--transition);
+  border: 2px solid transparent;
 }
 
 .terminal-seleccion__btn:hover {
-  background-color: var(--text-h);
-  color: var(--color-boton-1);
-  transition: background 0.15s;
+  border-color: var(--accent);
+  background: var(--accent-soft);
 }
 
 .terminal-seleccion__btn--cambio {
-  padding: 5px;
-  background-color: var(--color-boton-1);
-  border-radius: var(--borde-radio-boton);
-  cursor: pointer;
+  padding: var(--sp-2) var(--sp-4);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-btn);
+  font-size: var(--text-caption);
+  color: var(--ink-soft);
+  align-self: flex-start;
 }
 
 .terminal-seleccion__btn--cambio:hover {
-  background-color: var(--text-h);
-  color: var(--color-boton-1);
-  transition: background 0.15s;
+  border-color: var(--accent);
+  color: var(--accent);
+  background: transparent;
 }
 
-/* Contenedor principal: divide la pantalla en dos columnas, carta a la izquierda y ticket a la derecha */
+/* Layout principal: 2 columnas */
 .terminal-layout {
-  display: flex;
-  gap: 2rem;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--sp-6);
+  align-items: start;
 }
 
-/* La carta ocupa el doble de espacio que el ticket (proporción 2:1) */
 .terminal-layout__carta {
-  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
 }
 
 .terminal-layout__ticket {
-  flex: 1;
-  /* separa visualmente el ticket de la carta */
-  border-left: 2px solid var(--color-borde, black);
-  padding-left: 1rem;
+  position: sticky;
+  top: 72px;
+  background: var(--surface);
+  border-radius: var(--radius-section);
+  padding: var(--sp-6);
 }
 
-/* La lista del ticket queda alineada en el centro quitando el lugar que ocupan los bullets de cada elemento */
-.terminal-layout__ticket ul {
-  padding-left: 0;
-  margin: 0;
+.terminal-layout__ticket h2 {
+  margin-bottom: var(--sp-4);
 }
 
-/* Caja de cada categorí­a en el acordeón (ej. "Bebidas", "Comida") */
+/* Más vendidos */
+.mas-vendidos {
+  background: var(--surface);
+  border-radius: var(--radius-section);
+  padding: var(--sp-6);
+}
+
+.mas-vendidos h2 {
+  margin-bottom: var(--sp-4);
+}
+
+.mas-vendidos__lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--sp-3);
+}
+
+/* Categorías */
 .categoria-card {
-  margin-bottom: 1rem;
-  border: 1px solid var(--color-borde, black);
-  border-radius: var(--borde-radio-seccion);
-  padding: 1rem;
-  background-color: #1a1f36;
+  background: var(--surface);
+  border-radius: var(--radius-section);
+  padding: var(--sp-4);
 }
 
-/* Botón que abre/cierra el acordeón de una categoría */
 .categoria-card__toggle {
-  /* ocupa todo el ancho de la categoria-card para que sea fácil de pulsar */
   width: 100%;
-  /* el texto no se centra, queda alineado como un tí­tulo */
   text-align: left;
-  padding: 5px;
-  font-weight: bold;
-  background-color: var(--color-boton-1);
-  border-radius: var(--borde-radio-boton);
-  cursor: pointer;
+  padding: var(--sp-3);
+  font-size: var(--text-body);
+  font-weight: 600;
+  color: var(--ink);
+  border-radius: var(--radius-btn);
+  transition: var(--transition);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .categoria-card__toggle:hover {
-  background-color: var(--text-h);
-  color: var(--color-boton-1);
-  transition: background 0.15s;
+  background: var(--surface-2);
 }
 
-/* Grid de productos que aparece solo cuando la categorí­a está desplegada */
+.categoria-card__toggle::after {
+  content: '+';
+  font-size: 1.25rem;
+  color: var(--ink-mute);
+  transition: transform 0.2s;
+}
+
+.categoria-card__toggle[aria-expanded="true"]::after {
+  transform: rotate(45deg);
+}
+
 .categoria-card__productos {
-  margin-top: 1rem;
+  margin-top: var(--sp-3);
   display: grid;
-  /* auto-fit + minmax: tantas columnas como quepan de al menos 150px,
-     se adapta solo a pantallas estrechas en vez de quedar fijo en 2 columnas */
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--sp-3);
 }
 
-/* "Los más vendidos" reutiliza categoria-card y producto-card. Aquí el grid no va
-   precedido de un botón de categoría, así que sobra el margen superior */
-.mas-vendidos .categoria-card__productos {
-  margin-top: 0;
-}
-
-/* Tarjeta individual de cada producto dentro de una categorí­a */
+/* Tarjeta de producto */
 .producto-card {
   display: flex;
   flex-direction: column;
-  /* empuja el botón al fondo */
-  justify-content: space-between;
-  /* borde punteado para diferenciarla del borde sólido de categoria-card */
-  border: 1px dotted var(--color-borde-suave, gray);
-  border-radius: var(--borde-radio-seccion);
-  padding: 0.5rem;
-  background-color: #d1c9e1;
-  /* texto oscuro para que contraste con el fondo claro */
-  color: #1a1f36;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  padding: var(--sp-4);
+  background: var(--ground);
+  border-radius: var(--radius-section);
+  gap: 0.25rem;
+}
+
+.producto-card p:first-child {
+  font-weight: 500;
+  font-size: var(--text-caption);
+  color: var(--ink);
+  min-height: 1.8em;
 }
 
 .producto-card__footer {
@@ -129,123 +161,128 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.25rem;
+  padding-top: var(--sp-1);
+}
+
+.producto-card__footer p {
+  font-weight: 700;
+  color: var(--ink);
 }
 
 .producto-card__btn {
-  width: fit-content;
-  /* solo el ancho del texto */
-  align-self: center;
-  background-color: var(--color-boton-2);
-  border-radius: var(--borde-radio-boton);
-  padding: 4px 12px;
-  cursor: pointer;
+  width: 100%;
+  padding: var(--sp-2);
+  background: var(--accent);
+  color: white;
+  border-radius: var(--radius-btn);
+  font-weight: 600;
+  font-size: var(--text-caption);
+  transition: var(--transition);
 }
 
 .producto-card__btn:hover {
-  background-color: var(--text-h);
-  color: var(--color-boton-2);
-  transition: background 0.15s;
+  background: var(--accent-hover);
 }
 
-/* Cada lí­nea del carrito en el ticket (cantidad x nombre - precio) */
+/* Ticket */
 .ticket__item {
   display: flex;
-  /* apila info y botones verticalmente */
   flex-direction: column;
-  gap: 0.3rem;
-  margin-bottom: 0.8rem;
-  border-bottom: 1px solid var(--color-borde, #ccc);
-  padding-bottom: 0.5rem;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-4);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: var(--sp-4);
 }
 
 .ticket__item-info {
   display: flex;
-  /* nombre y precio en vertical */
   flex-direction: column;
+  gap: 0.25rem;
+}
+
+.ticket__item-info p:first-child {
+  font-weight: 500;
+}
+
+.ticket__item-info p:last-child {
+  font-weight: 700;
+  color: var(--accent);
 }
 
 .ticket__item-acciones {
-  /* botones en horizontal */
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  justify-content: center
-}
-
-/* Tamaño base compartido para todos los botones de acción del ticket */
-.ticket__btn-cantidad,
-.ticket__btn-eliminar {
-  width: 30px;
-  height: 25px;
-  padding: 0;
-  border-radius: var(--borde-radio-boton);
-  background-color: var(--color-boton-2);
-  font-weight: bold;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  /* centra el +, - y X dentro del botón */
+  gap: var(--sp-2);
   justify-content: center;
 }
 
-/* Botones "+" y "-" para cambiar la cantidad de un producto del carrito */
 .ticket__btn-cantidad {
-  font-weight: bold;
-  cursor: pointer;
-}
-
-/* Botón "X" para quitar un producto del carrito */
-.ticket__btn-eliminar {
-  /* color de aviso, coherente con que es una acción destructiva */
-  color: var(--color-peligro, red);
-  cursor: pointer;
-}
-
-/* Botón principal para enviar el pedido a cocina */
-.ticket__btn-finalizar {
-  padding: 1rem;
-  /* color distintivo para que destaque como acción principal de la página */
-  background-color: var(--color-primario, #aa3bff);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-btn);
+  background: var(--accent);
   color: white;
-  border-radius: var(--borde-radio-boton);
-  font-weight: bold;
-  cursor: pointer;
+  font-weight: 700;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+.ticket__btn-cantidad:hover {
+  background: var(--accent-hover);
+}
+
+.ticket__btn-eliminar {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-btn);
+  background: var(--danger);
+  color: white;
+  font-weight: 700;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+.ticket__btn-eliminar:hover {
+  filter: brightness(1.1);
+}
+
+.ticket__btn-finalizar {
+  width: 100%;
+  padding: var(--sp-4);
+  background: var(--accent);
+  color: white;
+  border-radius: var(--radius-btn);
+  font-weight: 700;
+  font-size: var(--text-body);
+  transition: var(--transition);
 }
 
 .ticket__btn-finalizar:hover {
-  background-color: white;
-  color: var(--color-primario);
-  transition: background 0.15s;
+  background: var(--accent-hover);
 }
 
+/* Responsive */
 @media (max-width: 768px) {
   .terminal-layout {
-    flex-direction: column;
-    width: 100%;
-  }
-
-  .terminal-layout__carta,
-  .terminal-layout__ticket {
-    width: 100%;
-  }
-
-  .terminal-layout__ticket {
-    border-left: none;
-    border-top: 2px solid var(--color-borde, black);
-    padding-left: 0;
-    padding-top: 1rem;
-  }
-
-  .terminal-seleccion__terminales {
-    width: 100%;
-  }
-
-  .categoria-card__productos {
     grid-template-columns: 1fr;
   }
 
-  .ticket__item {
-    width: 100%;
+  .terminal-layout__ticket {
+    position: static;
+  }
+
+  .main-content {
+    padding: var(--sp-4);
+  }
+
+  .navbar {
+    padding: 0 var(--sp-4);
   }
 }

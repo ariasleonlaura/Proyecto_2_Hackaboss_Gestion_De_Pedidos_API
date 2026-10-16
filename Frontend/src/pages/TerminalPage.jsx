@@ -260,7 +260,7 @@ const TerminalPage = () => {
                   {listaProd.map((producto) => (
                     <div key={producto.id} className="producto-card">
                       <p>{producto.nombre}</p>
-                      <div className="prodcuto-card__footer">
+                      <div className="producto-card__footer">
                         <p>
                           <strong>{producto.precio.toFixed(2)} €</strong>
                         </p>

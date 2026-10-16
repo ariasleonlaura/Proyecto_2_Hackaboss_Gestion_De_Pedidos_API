@@ -1,10 +1,11 @@
-import '../../styles/globals.css';
+import { TriangleAlert } from "lucide-react";
 
 const ErrorMessage = ({ message }) => {
   return (
     <div className="error-container">
-      <h3>⚠️ ¡Vaya! Algo ha fallado</h3>
-      {/* El operador || funciona como "si message tiene valor úsalo, si no usa el texto por defecto" */}
+      <h3>
+        <TriangleAlert size={18} /> ¡Vaya! Algo ha fallado
+      </h3>
       <p>{message || "Ha ocurrido un error inesperado al conectar con el servidor."}</p>
     </div>
   );
