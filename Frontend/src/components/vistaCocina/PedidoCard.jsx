@@ -4,7 +4,7 @@ import PedidoLineaInput from "./PedidoLineaInput";
 import { Play, Check } from "lucide-react";
 
 export default function PedidoCard({ pedido, onAvanzar, onRefetch }) {
-  //el botón esta trabajando?
+  // El botón esta trabajando?
   const [advancing, setAdvancing] = useState(false);
 
   async function handleAvanzar() {

@@ -144,11 +144,6 @@
   color: var(--st-preparacion);
 }
 
-/* Cantidad texto por estado - seguimos la misma que CREADO */
-.pedido-card--PREPARACION .pedido-card__cantidad {
-  color: var(--st-preparacion);
-}
-
 .pedido-card__badge--LISTO {
   background: var(--st-listo-bg);
   color: var(--st-listo);
@@ -174,14 +169,6 @@
   display: flex;
   align-items: center;
   gap: var(--sp-3);
-}
-
-.pedido-card__cantidad {
-  font-weight: 700;
-  font-size: var(--text-caption);
-  color: var(--ink);
-  min-width: 2rem;
-  text-align: center;
 }
 
 .pedido-card__nombre {
@@ -314,15 +301,6 @@
   display: flex;
   align-items: center;
   gap: var(--sp-2);
-}
-
-.pedido-linea-input-disabled .pedido-linea-input-cantidad {
-  color: var(--ink-mute);
-}
-
-/* Cantidad en estado PREPARACION - color de tema en lugar de gris */
-.pedido-card--PREPARACION .pedio-linea-input-disabled .pedido-linea-input-cantidad {
-  color: var(--st-preparacion);
 }
 
 /* Responsive */
