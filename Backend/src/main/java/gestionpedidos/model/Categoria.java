@@ -11,7 +11,6 @@ import java.util.List;
 @AllArgsConstructor
 @Entity
 @Table(name = "categorias")
-
 public class Categoria {
 
     @Id
