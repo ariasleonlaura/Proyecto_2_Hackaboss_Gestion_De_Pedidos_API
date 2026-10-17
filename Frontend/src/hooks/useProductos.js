@@ -16,7 +16,7 @@ export function useProductos(activo, categoriaId, orden, tipoOrden) {
             const data = await listarProductos(activo, categoriaId, orden, tipoOrden);
             setProductos(data);
             setError(null);
-        } catch (e) {
+        } catch {
             setError("Servidor no disponible. Inténtalo de nuevo más tarde.");
         } finally {
             setLoading(false);
@@ -24,6 +24,7 @@ export function useProductos(activo, categoriaId, orden, tipoOrden) {
     }, [activo, categoriaId, orden, tipoOrden]); // fetchProductos solo cambia si cambian los filtros
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchProductos();
     }, [fetchProductos]); // se ejecuta cuando fetchProductos cambia, es decir cuando cambian los filtros
 

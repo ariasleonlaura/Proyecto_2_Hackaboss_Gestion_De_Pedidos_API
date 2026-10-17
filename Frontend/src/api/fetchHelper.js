@@ -33,7 +33,7 @@ export async function fetchJSON(url, options = {}, timeoutMs = 8000) {
     } catch (e) {
         // Si el fetch fue cancelado por timeout, lanzamos un mensaje claro
         if (e.name === "AbortError") {
-            throw new Error("El servidor no responde. Inténtalo de nuevo más tarde.");
+            throw new Error("El servidor no responde. Inténtalo de nuevo más tarde.", { cause: e });
         }
         throw e; // cualquier otro error se propaga igual
     } finally {
