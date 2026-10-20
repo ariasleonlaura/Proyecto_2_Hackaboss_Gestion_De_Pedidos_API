@@ -180,28 +180,31 @@ GET /api/estadisticas/ranking-terminales
 **Response** `201 Created`
 ```json
 {
-  "id": 12,
-  "codigo": "PED-A3F9C1B2",
-  "fechaCreacion": "2025-06-10T14:32:00",
-  "estado": "CREADO",
-  "total": 24.75,
-  "terminalId": 1,
-  "productos": [
-    {
-      "productoId": 3,
-      "nombreProducto": "Hamburguesa Clásica",
-      "cantidad": 2,
-      "precioUnitario": 8.50,
-      "subtotal": 17.00
-    },
-    {
-      "productoId": 5,
-      "nombreProducto": "Refresco",
-      "cantidad": 1,
-      "precioUnitario": 2.75,
-      "subtotal": 2.75
-    }
-  ]
+  "mensaje": "Pedido registrado correctamente",
+  "data": {
+    "id": 12,
+    "codigo": "PED-A3F9C1B2",
+    "fechaCreacion": "2025-06-10T14:32:00",
+    "estado": "CREADO",
+    "total": 24.75,
+    "terminalId": 1,
+    "productos": [
+      {
+        "productoId": 3,
+        "nombreProducto": "Hamburguesa Clásica",
+        "cantidad": 2,
+        "precioUnitario": 8.50,
+        "subtotal": 17.00
+      },
+      {
+        "productoId": 5,
+        "nombreProducto": "Refresco",
+        "cantidad": 1,
+        "precioUnitario": 2.75,
+        "subtotal": 2.75
+      }
+    ]
+  }
 }
 ```
 
@@ -243,13 +246,22 @@ GET /api/estadisticas/ranking-terminales
 **Response** `400 Bad Request`
 ```json
 {
-  "error": "Datos de entrada inválidos",
+  "Error": "Datos de entrada inválidos",
   "detalles": [
     "nombre: El nombre no puede estar vacío",
     "precio: El precio debe ser mayor que 0"
   ]
 }
 ```
+
+> **Nota:** la clave de los errores de validación es `Error` (con mayúscula). El resto de errores de la API usan claves distintas según el código de estado:
+>
+> | Código | Cuerpo | Casos |
+> |---|---|---|
+> | `400` | `{"Error: ": "..."}` | validación de negocio, parámetro obligatorio ausente, tipo de parámetro inválido, JSON mal formado |
+> | `404` | `{"Error: ": "..."}` | recurso no encontrado, ruta inexistente |
+> | `409` | `{"Error: ": "..."}` | transición de estado no permitida |
+> | `500` | `{"Error inesperado: ": "..."}` | error no controlado |
 
 ---
 
@@ -283,7 +295,7 @@ spring.sql.init.mode=never
 app.cors.allowed-origin=${FRONTEND_URL:http://localhost:5173}
 ```
 
-Crea un archivo `.env` o configura las variables de entorno antes de ejecutar:
+Configura las variables de entorno antes de ejecutar (Spring Boot no lee archivos `.env`; definelas en la configuración de tu IDE o en la terminal):
 
 DB_URL=jdbc:mysql://localhost:3306/gestion_pedidos_bd?createDatabaseIfNotExist=true
 
@@ -293,7 +305,7 @@ DB_PASSWORD=
 
 `FRONTEND_URL` es opcional: si no se define, el backend acepta peticiones desde `http://localhost:5173` (el puerto por defecto de Vite en desarrollo). En un despliegue real, se define esta variable apuntando al dominio del frontend en producción, y el backend dejará de aceptar peticiones desde `localhost`.
 
-> **Importante:** no subas credenciales reales al repositorio. Añade `.env` a tu `.gitignore`.
+> **Importante:** no subas credenciales reales al repositorio.
 
 ---
 
@@ -305,7 +317,7 @@ http://localhost:8080/doc/swagger-ui.html
 ### Colección Postman
 
 En la carpeta postman/ de este repositorio encontrarás el archivo:
-Gestion de pedidos - hamburgueseria.postman_collection.json. 
+API de gestión de pedidos - Hamburguesería.postman_collection.json.
 
 Para importarla:
 1. Abre Postman
@@ -333,7 +345,7 @@ mvn spring-boot:run
 
 ## Tests
 
-El proyecto incluye una suite de tests en varias capas, escritos con **JUnit 5**, **Mockito** y **Spring Test**, que cubre desde la lógica de negocio aislada hasta el flujo completo de una petición HTTP real contra una base de datos.
+El proyecto incluye una suite de tests en varias capas, escritos con **JUnit 5**, **Mockito** y **Spring Test**, que cubre desde la lógica de negocio aislada hasta el flujo completo de una petición HTTP real contra una base de datos. La suite completa son **111 tests** (54 de controller, 52 de service, 3 de repositorio, 1 de integración y 1 de contexto de aplicación).
 
 ### Tests unitarios de `Service` (Mockito)
 
@@ -377,35 +389,6 @@ Desde IntelliJ, botón derecho sobre `src/test/java` → `Run 'All Tests'`, o de
 ```bash
 mvn test
 ```
-
-### Cobertura
-
-108 tests en total (54 controller + 50 service + 3 repository + 1 integración).
-
-| Clase de test | Qué cubre |
-|---|---|
-| `ProductoServiceTest` | Creación, actualización, listado (filtrado por estado/categoría y ordenación por precio/nombre), y activación/desactivación de productos |
-| `PedidoServiceTest` | Registro de pedidos, gestión de líneas de producto (añadir sumando cantidad o creando línea nueva, eliminar total o parcialmente, eliminación automática del pedido cuando queda vacío), consulta por código, y la máquina de estados de transición (`CREADO → PREPARACION → LISTO → PAGADO → ENTREGADO`) |
-| `CategoriaServiceTest` | Listado, creación (con validación de duplicados) y consulta de categorías |
-| `TerminalServiceTest` | Listado, creación (con validación de duplicados) y consulta de terminales |
-
-Cada método público está cubierto con su caso de éxito y sus casos de error correspondientes (recursos no encontrados, nombres duplicados, transiciones de estado no permitidas, validaciones de negocio), siguiendo el patrón **Arrange / Act / Assert**.
-
-### Enfoque
-
-- Los repositorios (`ProductoRepository`, `PedidoRepository`, etc.) se simulan con `@Mock` de Mockito — los tests no acceden a MySQL en ningún momento.
-- `@InjectMocks` inyecta esos mocks en el `Service` real bajo prueba.
-- Cada clase de test incluye métodos factoría privados para construir entidades y DTOs de prueba, evitando repetir el mismo `Arrange` en cada caso.
-
-### Cómo ejecutarlos
-
-Desde IntelliJ, botón derecho sobre `src/test/java` → `Run 'All Tests'`, o desde terminal:
-
-```bash
-mvn test
-```
-
-Al no depender de una base de datos real, la suite completa se ejecuta en milisegundos.
 
 ---
 

@@ -41,6 +41,7 @@ Además se utilizan:
 * Visualizar el importe total del pedido.
 * Registrar un nuevo pedido.
 * Mostrar el código generado automáticamente.
+* Mostrar "Los más vendidos" (top 5 por cantidad total vendida).
 
 ### Cocina
 
@@ -54,7 +55,7 @@ Además se utilizan:
 
 ### Recogida
 
-* Listar pedidos en estado LISTO.
+* Listar pedidos en estado LISTO y PAGADO.
 * Cobrar pedidos (LISTO → PAGADO).
 * Entregar pedidos (PAGADO → ENTREGADO).
 * Buscar pedido por código con botón "Buscar".
@@ -105,6 +106,10 @@ GET /api/pedidos?estado=LISTO
 GET /api/pedidos?estado=PAGADO
 
 PATCH /api/pedidos/{pedidoId}/estado
+
+### Estadísticas
+
+GET /api/estadisticas/productos-mas-vendidos
 
 ## Flujo de usuario
 
@@ -157,11 +162,13 @@ Ejemplo de mensaje mostrado:
 
 La aplicación consume la API REST desarrollada en el Proyecto I.
 
-La URL base utilizada es:
+La URL base se lee de la variable de entorno `VITE_API_URL` (Vite). Crea un archivo `Frontend/.env` en la raíz del proyecto con:
 
-```text
-http://localhost:8080/api
+```dotenv
+VITE_API_URL=http://localhost:8080/api
 ```
+
+Sin ese archivo, la aplicación no sabrá a qué backend llamar y mostrará "Servidor no disponible".
 
 Es necesario que el backend esté en ejecución antes de iniciar el frontend.
 
@@ -169,23 +176,31 @@ Es necesario que el backend esté en ejecución antes de iniciar el frontend.
 
 ### 1. Clonar el repositorio
 
-```bashA
+```bash
 git clone <url-del-repositorio>
 ```
 
-### 2. Instalar dependencias
+### 2. Configurar la URL de la API
+
+Crea un archivo `Frontend/.env` en la raíz del proyecto con:
+
+```dotenv
+VITE_API_URL=http://localhost:8080/api
+```
+
+### 3. Instalar dependencias
 
 ```bash
 npm install
 ```
 
-### 3. Ejecutar la aplicación
+### 4. Ejecutar la aplicación
 
 ```bash
 npm run dev
 ```
 
-### 4. Generar la versión de producción
+### 5. Generar la versión de producción
 
 ```bash
 npm run build

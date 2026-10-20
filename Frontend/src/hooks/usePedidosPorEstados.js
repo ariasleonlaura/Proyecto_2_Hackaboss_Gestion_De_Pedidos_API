@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { listarPedidosYPorEstado } from "../api/pedidosApi";
 
-const POLL_INTERVAL_MS = 15000; // refresco automático cada 10 segundos
+const POLL_INTERVAL_MS = 15000; // refresco automático cada 15 segundos
 
 // Hook genérico que carga pedidos de uno o varios estados y los refresca cada 10s.
 // Recibe un array de estados: usePedidosPorEstados(['CREADO', 'PREPARACION'])
@@ -32,7 +32,7 @@ export function usePedidosPorEstados(estados) {
     }
   }, [clave]);
 
-  // Polling automático cada 10 s
+  // Polling automático cada 15 s
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchPedidos();
