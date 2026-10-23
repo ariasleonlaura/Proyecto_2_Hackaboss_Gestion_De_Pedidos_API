@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.List;
 
 public interface ProductoRepository extends JpaRepository<Producto, Long> {
-    boolean existsByNombre(String nombre);
+    boolean existsByNombreIgnoreCase(String nombre);
 
     /* @Query te deja escribir la consulta a mano encima del método. Se usa el nombre de la clase (PedidoProducto)
     y no el de la tabla (pedidos_productos) para que Hibernate lo reconozca como entidad y la traduzca a SQL real por debajo */

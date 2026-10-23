@@ -12,7 +12,7 @@ Permite gestionar terminales, categorías, productos y pedidos con sus líneas d
 - Spring Web
 - Spring Data JPA
 - Hibernate
-- MySQL
+- PostgreSQL
 - Lombok
 - Swagger / SpringDoc OpenAPI
 
@@ -265,16 +265,7 @@ GET /api/estadisticas/ranking-terminales
 
 ---
 
-## Datos de prueba
 
-El proyecto incluye `data.sql` en `src/main/resources` con inserciones iniciales de:
-
-- Terminales
-- Categorías
-- Productos
-- Pedidos (opcional)
-
----
 
 ## Configuración del proyecto
 
@@ -285,11 +276,13 @@ spring.datasource.url=${DB_URL}
 spring.datasource.username=${DB_USERNAME}
 spring.datasource.password=${DB_PASSWORD}
 
-spring.jpa.hibernate.ddl-auto=update
+spring.jpa.hibernate.ddl-auto=validate
 spring.jpa.show-sql=true
 
 # "always" si no tenemos la BBDD ya cargada y "never" si ya estaba creada
 spring.sql.init.mode=never
+
+# Flyway V1/V2 migrations managed separately
 
 # Origen permitido para CORS (el frontend en desarrollo)
 app.cors.allowed-origin=${FRONTEND_URL:http://localhost:5173}
@@ -297,7 +290,7 @@ app.cors.allowed-origin=${FRONTEND_URL:http://localhost:5173}
 
 Configura las variables de entorno antes de ejecutar (Spring Boot no lee archivos `.env`; definelas en la configuración de tu IDE o en la terminal):
 
-DB_URL=jdbc:mysql://localhost:3306/gestion_pedidos_bd?createDatabaseIfNotExist=true
+DB_URL=jdbc:postgresql://localhost:5432/gestion_pedidos_bd
 
 DB_USERNAME=root
 
@@ -369,18 +362,18 @@ Verifican que cada controller expone correctamente sus endpoints, con el `Servic
 
 ### Tests de repositorio (`@DataJpaTest`)
 
-Las dos consultas de agregación (`@Query` con `SUM`/`COUNT` y `GROUP BY`) se prueban contra una base de datos real en memoria (H2), no contra un mock — la única forma de verificar que el SQL generado hace lo que debe.
+Las dos consultas de agregación (`@Query` con `SUM`/`COUNT` y `GROUP BY`) se prueban contra PostgreSQL mediante Testcontainers, no contra un mock — la única forma de verificar que el SQL generado hace lo que debe.
 
 - `ProductoRepositoryTest` — ranking de productos más vendidos
 - `PedidoRepositoryTest` — ranking de terminales por uso
 
 ### Test de integración de extremo a extremo (`TestRestTemplate`)
 
-`PedidoIntegrationTest` levanta la aplicación completa en un puerto aleatorio y ejecuta el flujo real de crear categoría → producto → terminal → pedido vía peticiones HTTP reales, contra la base de datos H2 del perfil `test` — sin ningún mock de por medio. Confirma que todas las capas encajan entre sí, incluido el cálculo real del total del pedido.
+`PedidoIntegrationTest` levanta la aplicación completa en un puerto aleatorio y ejecuta el flujo real de crear categoría → producto → terminal → pedido vía peticiones HTTP reales, contra PostgreSQL con Testcontainers — sin ningún mock de por medio. Confirma que todas las capas encajan entre sí, incluido el cálculo real del total del pedido.
 
 ### Perfil de test aislado
 
-Los tests de `@DataJpaTest` y el de integración usan `src/test/resources/application-test.properties`, con una base de datos H2 en memoria (`spring.jpa.hibernate.ddl-auto=create-drop`) — la suite completa no depende de tener MySQL arrancado ni de ninguna variable de entorno, y es reproducible en cualquier máquina.
+Los tests de `@DataJpaTest` y el de integración usan `src/test/resources/application-test.properties`, con PostgreSQL mediante Testcontainers (`spring.jpa.hibernate.ddl-auto=validate`) — la suite completa no depende de tener MySQL arrancado ni de variables de entorno locales, y es reproducible en cualquier máquina con Docker.
 
 ### Cómo ejecutarlos
 

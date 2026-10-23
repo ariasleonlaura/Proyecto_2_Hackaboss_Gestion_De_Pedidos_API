@@ -5,12 +5,15 @@ import gestionpedidos.model.Pedido;
 import gestionpedidos.model.Terminal;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@ActiveProfiles("test")
 @DataJpaTest
 public class PedidoRepositoryTest {
 
@@ -59,5 +62,29 @@ public class PedidoRepositoryTest {
         assertThat(resultado.get(0).getTotalPedidos()).isEqualTo(2L);
         assertThat(resultado.get(1).getNombreTerminal()).isEqualTo(terminalMenosUsada.getNombre());
         assertThat(resultado.get(1).getTotalPedidos()).isEqualTo(1L);
+    }
+
+    @Test
+    void findByCodigoIgnoreCaseDeberiaEncontrarPedidoConCodigoEnMinusculas() {
+        // Arrange: insertamos un pedido con código en mayúsculas
+        Terminal terminal = terminalRepository.save(crearTerminal("Terminal Test"));
+        Pedido pedido = crearPedido("PEDIDO-001", terminal);
+        pedidoRepository.save(pedido);
+
+        // Act: buscamos en minúsculas
+        Optional<Pedido> encontrado = pedidoRepository.findByCodigoIgnoreCase("pedido-001");
+
+        // Assert: debe encontrar el pedido aunque el código guardado sea mayúsculas
+        assertThat(encontrado).isPresent();
+        assertThat(encontrado.get().getCodigo()).isEqualTo("PEDIDO-001");
+    }
+
+    @Test
+    void findByCodigoIgnoreCaseDeberiaDevolverVacioCuandoNoExiste() {
+        // Act: buscamos un código que no existe
+        Optional<Pedido> encontrado = pedidoRepository.findByCodigoIgnoreCase("CODIGO-INEXISTENTE");
+
+        // Assert: debe devolver vacío
+        assertThat(encontrado).isEmpty();
     }
 }

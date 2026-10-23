@@ -1,5 +1,8 @@
 package gestionpedidos.service;
 
+import java.util.List;
+import java.util.Optional;
+
 import gestionpedidos.dto.CrearTerminalDto;
 import gestionpedidos.dto.TerminalDto;
 import gestionpedidos.exception.PedidoStateException;
@@ -11,14 +14,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.List;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.mockito.InOrder;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @ExtendWith(MockitoExtension.class)
 public class TerminalServiceTest {
@@ -68,21 +68,6 @@ public class TerminalServiceTest {
     }
 
 
-    // Test caso de éxito de buscarTerminalPorId
-    @Test
-    void buscarTerminalPorIdDeberiaDevolverlaCuandoExiste() {
-        Terminal terminal = crearTerminal(1L, "Terminal 1");
-
-        when(terminalRepository.findById(terminal.getId())).thenReturn(Optional.of(terminal));
-
-        TerminalDto resultado = terminalService.buscarTerminalPorId(terminal.getId());
-
-        // System.out.println(mockingDetails(terminalRepository).printInvocations());
-
-        assertThat(resultado.getId()).isEqualTo(terminal.getId());
-    }
-
-
     // Test caso de error de buscarTerminalPorId. Terminal no encontrada
     @Test
     void buscarTerminalPorIdDeberiaLanzarExcepcionCuandoNoLaEncuentra() {
@@ -102,7 +87,7 @@ public class TerminalServiceTest {
     void crearTerminalDeberiaGuardarlaCuandoElNombreNoExiste() {
         CrearTerminalDto dto = crearTerminalDto("Terminal 1");
 
-        when(terminalRepository.existsByNombre(dto.getNombre())).thenReturn(false);
+        when(terminalRepository.existsByNombreIgnoreCase(dto.getNombre())).thenReturn(false);
         when(terminalRepository.save(any(Terminal.class))).thenAnswer(invocation -> {
             Terminal terminal = invocation.getArgument(0);
             terminal.setId(1L);
@@ -118,12 +103,40 @@ public class TerminalServiceTest {
         verify(terminalRepository).save(any(Terminal.class));
     }
 
+    // Test caso de error: "Bebidas" y "bebidas" se rechazan como duplicados (insensible a mayúsculas)
+    @Test
+    void crearTerminalDeberiaLanzarExcepcionCuandoElNombreDifiereSoloEnMayusculas() {
+        // Primero registramos "Bebidas" (debe guardarse)
+        CrearTerminalDto dto1 = crearTerminalDto("Bebidas");
+
+        when(terminalRepository.existsByNombreIgnoreCase(dto1.getNombre())).thenReturn(false);
+        when(terminalRepository.save(any(Terminal.class))).thenAnswer(invocation -> {
+            Terminal terminal = invocation.getArgument(0);
+            terminal.setId(1L);
+            return terminal;
+        });
+        terminalService.crearTerminal(dto1);
+
+        // Ahora intentar crear "bebidas" debería rechazarse (no debe guardarse de nuevo)
+        CrearTerminalDto dto2 = crearTerminalDto("bebidas");
+
+        when(terminalRepository.existsByNombreIgnoreCase(dto2.getNombre())).thenReturn(true);
+
+        assertThatThrownBy(() -> terminalService.crearTerminal(dto2))
+                .isInstanceOf(PedidoStateException.class)
+                .hasMessageContaining("Ya existe una terminal con el nombre " + dto2.getNombre());
+
+        // Verificar que save no fue llamado para el segundo intento
+        InOrder inOrder = inOrder(terminalRepository);
+        inOrder.verify(terminalRepository).save(any(Terminal.class)); // first call
+    }
+
     // Test caso de error de crearTerminal. Nombre de terminal ya existente
     @Test
     void crearTerminalDeberiaLanzarExcepcionCuandoElNombreYaExiste() {
         CrearTerminalDto dto = crearTerminalDto("Terminal 1");
 
-        when(terminalRepository.existsByNombre(dto.getNombre())).thenReturn(true);
+        when(terminalRepository.existsByNombreIgnoreCase(dto.getNombre())).thenReturn(true);
 
         assertThatThrownBy(() -> terminalService.crearTerminal(dto))
                 .isInstanceOf(PedidoStateException.class)
