@@ -1,9 +1,0 @@
-export const API_URL = import.meta.env.VITE_API_URL;
-
-export const ESTADOS_PEDIDO = {
-CREADO: "CREADO",
-PREPARACION: "PREPARACION",
-LISTO: "LISTO",
-PAGADO: "PAGADO",
-ENTREGADO: "ENTREGADO"
-};

@@ -1,0 +1,81 @@
+/* Contenedor principal de la página de recogida */
+.recogida-container {
+  padding: 2rem;
+  text-align: center;
+}
+
+/* Grid que distribuye las tarjetas de pedido automáticamente:
+   tantas columnas como quepan de al menos 300px,
+   expandiéndose hasta ocupar el espacio disponible */
+.pedidos-listos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+/* Mensaje vacío cuando no hay pedidos pendientes */
+.pedidos-listos-grid__vacio {
+  /* grid-column: 1 / -1 hace que ocupe todas las columnas del grid */
+  grid-column: 1 / -1;
+  font-size: 1.5rem;
+  color: #666;
+}
+
+/* Tarjeta de cada pedido listo para recoger */
+.pedido-listo-card {
+  /* Verde por defecto para indicar que está listo */
+  background-color: #4caf50;
+  color: white;
+  padding: 3rem 1rem;
+  border-radius: var(--borde-radio-seccion);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Variante morada para pedidos ya cobrados (estado PAGADO) */
+.pedido-listo-card--pagado {
+  background-color: #aa3bff;
+}
+
+/* Código del pedido en grande */
+.pedido-listo-card h1 {
+  font-size: 2rem;
+  margin: 0 0 1.5rem 0;
+  color: white;
+  /* overflow-wrap y word-break permiten partir el texto si no cabe en el recuadro */
+  overflow-wrap: break-word;
+  word-break: break-all;
+  /* line-height: 1.2 evita que las líneas se aplasten entre sí si hay salto */
+  line-height: 1.2;
+}
+
+/* Total del pedido destacado debajo del código */
+.pedido-listo-card__total {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  color: white;
+}
+
+/* Botón de acción para cobrar o marcar como entregado */
+.btn-entregar {
+  /* Fondo blanco con texto verde para contrastar con la tarjeta */
+  background-color: white;
+  color: #4caf50;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  font-size: 1.1rem;
+  font-weight: bold;
+  border-radius: var(--borde-radio-boton);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+/* En tarjetas PAGADO el botón tiene texto morado para contrastar con el fondo blanco */
+.pedido-listo-card--pagado .btn-entregar {
+  color: #aa3bff;
+}
+
+/* Efecto de escala al pasar el ratón para dar feedback visual */
+.btn-entregar:hover {
+  transform: scale(1.05);
+}

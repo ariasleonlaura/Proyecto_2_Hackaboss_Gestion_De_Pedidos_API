@@ -1,0 +1,242 @@
+/* ── Página ─────────────────────────────────────────────── */
+/* Ocupa toda la pantalla y apila cabecera + columnas verticalmente */
+.cocina-page {
+  min-height: 100vh;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Cabecera ────────────────────────────────────────────── */
+/* Barra superior con el título y el botón de refrescar */
+.cocina-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.cocina-header__titulo {
+  font-size: 20px;
+  font-weight: 500;
+  margin: 0;
+  color: var(--text-h);
+}
+
+.cocina-header__controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Muestra la hora de la última actualización */
+.cocina-header__timestamp {
+  font-size: 13px;
+  color: var(--text);
+}
+
+/* Botón de refresco manual */
+.cocina-header__btn-actualizar {
+  font-size: 14px;
+  padding: 6px 14px;
+  border-radius: var(--borde-radio-boton);
+  border: 1px solid var(--border);
+  background-color: var(--color-boton-1);
+  color: var(--text-h);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.cocina-header__btn-actualizar:hover {
+  background-color: var(--text-h);
+  color: var(--color-boton-1);
+  transition: background 0.15s;
+}
+
+.cocina-header__btn-actualizar:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Grid de columnas ────────────────────────────────────── */
+/* Dos columnas iguales: Nuevos | En preparación */
+.cocina-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  flex: 1;
+  align-items: start;
+}
+
+/* En móvil las columnas se apilan */
+@media (max-width: 640px) {
+  .cocina-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Columna ─────────────────────────────────────────────── */
+/* Cada columna apila sus tarjetas verticalmente */
+.cocina-columna {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Título de la columna con el contador de pedidos */
+.cocina-columna__titulo {
+  font-size: 15px;
+  font-weight: 500;
+  margin: 0 0 0.25rem;
+  color: var(--text-h);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Badge con el número de pedidos en esa columna */
+.cocina-columna__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Contador de "Nuevos" en amarillo */
+.cocina-columna--nuevos .cocina-columna__count {
+  background: #FAEEDA;
+  color: #854F0B;
+}
+
+/* Contador de "En preparación" en azul */
+.cocina-columna--preparacion .cocina-columna__count {
+  background: #E6F1FB;
+  color: #185FA5;
+}
+
+/* Mensaje cuando no hay pedidos en esa columna */
+.cocina-columna__vacia {
+  font-size: 14px;
+  color: var(--text);
+  padding: 1.5rem 0;
+  text-align: center;
+}
+
+/* ── Tarjeta de pedido ───────────────────────────────────── */
+/* Cada pedido se muestra como una tarjeta con borde */
+.pedido-card {
+  background-color: #d1c9e1;
+  color: #1a1f36;
+  border: 1px solid var(--border);
+  border-radius: var(--borde-radio-seccion);
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  box-shadow: var(--shadow);
+}
+
+/* Fila superior: código del pedido + badge de estado */
+.pedido-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Código del pedido en grande */
+.pedido-card__codigo {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--color-texto-oscuro);
+  letter-spacing: 0.03em;
+}
+
+/* ── Badges de estado ────────────────────────────────────── */
+.pedido-card__badge {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 99px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.pedido-card__badge--creado {
+  background: #FAEEDA;
+  color: #854F0B;
+}
+
+.pedido-card__badge--preparacion {
+  background: #E6F1FB;
+  color: #185FA5;
+}
+
+.pedido-card__badge--listo {
+  background: #EAF3DE;
+  color: #3B6D11;
+}
+
+/* ── Lista de productos ──────────────────────────────────── */
+/* Lista de productos del pedido separada del header por un borde */
+.pedido-card__productos {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 4px;
+  border-top: 1px solid var(--border);
+  padding-top: 0.75rem;
+}
+
+.pedido-card__producto {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-h);
+}
+
+/* Cantidad en gris a la izquierda */
+.pedido-card__cantidad {
+  font-weight: 500;
+  color: var(--color-texto-oscuro);
+  min-width: 24px;
+}
+
+.pedido-card__nombre {
+  color: var(--color-texto-oscuro);
+}
+
+/* ── Botón avanzar estado ────────────────────────────────── */
+/* Avanza el pedido al siguiente estado: CREADO→PREPARACION→LISTO */
+.pedido-card__btn {
+  width: 100%;
+  padding: 8px 0;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: var(--borde-radio-boton);
+  border: 1px solid var(--border);
+  background-color: var(--color-boton-1);
+  color: var(--text-h);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.pedido-card__btn:hover:not(:disabled) {
+  background-color: var(--text-h);
+  color: var(--color-boton-1);
+  transition: background 0.15s;
+}
+
+.pedido-card__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
