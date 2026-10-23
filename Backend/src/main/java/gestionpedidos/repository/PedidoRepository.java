@@ -14,7 +14,7 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
 
     List<Pedido> findByEstadoPedidoOrderByFechaAsc(EstadoPedido estado);
 
-    Optional<Pedido> findByCodigo(String codigo);
+    Optional<Pedido> findByCodigoIgnoreCase(String codigo);
 
     // El """ se usa para escribir texto multilínea sin concatenar ni escapar comillas
     @Query("""

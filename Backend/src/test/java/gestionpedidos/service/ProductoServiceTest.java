@@ -13,6 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.InOrder;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -20,6 +21,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -60,7 +62,7 @@ class ProductoServiceTest {
         Categoria categoria = crearCategoria(1L, "Hamburguesas");
         CrearProductoDto dto = crearCrearProductoDto("Hamburguesa clásica", "8.50", true, categoria.getId());
 
-        when(productoRepository.existsByNombre(dto.getNombre())).thenReturn(false);
+        when(productoRepository.existsByNombreIgnoreCase(dto.getNombre())).thenReturn(false);
         when(categoriaRepository.findById(categoria.getId())).thenReturn(Optional.of(categoria));
         /* El objeto se construye dentro del método que se prueba y no hay forma de referenciarlo desde fuera
            por lo que se accede a él mediante thenAnswer(invocation) */
@@ -83,12 +85,41 @@ class ProductoServiceTest {
         verify(productoRepository).save(any(Producto.class));
     }
 
+    // Test caso de error: "Hamburguesa clásica" y "hamburguesa clásica" se rechazan como duplicados
+    @Test
+    void crearProductoDeberiaLanzarExcepcionCuandoElNombreDifiereSoloEnMayusculas() {
+        Categoria categoria = crearCategoria(1L, "Hamburguesas");
+        CrearProductoDto dto = crearCrearProductoDto("Hamburguesa clásica", "8.50", true, categoria.getId());
+
+        when(productoRepository.existsByNombreIgnoreCase(dto.getNombre())).thenReturn(false);
+        when(categoriaRepository.findById(categoria.getId())).thenReturn(Optional.of(categoria));
+        when(productoRepository.save(any(Producto.class))).thenAnswer(invocation -> {
+            Producto p = invocation.getArgument(0);
+            p.setId(1L);
+            return p;
+        });
+        productoService.crearProducto(dto);
+
+        // Ahora intentar crear "hamburguesa clásica" debería rechazarse
+        CrearProductoDto dto2 = crearCrearProductoDto("hamburguesa clásica", "8.50", true, categoria.getId());
+
+        when(productoRepository.existsByNombreIgnoreCase(dto2.getNombre())).thenReturn(true);
+
+        assertThatThrownBy(() -> productoService.crearProducto(dto2))
+                .isInstanceOf(PedidoStateException.class)
+                .hasMessageContaining("Ya existe un producto con el nombre " + dto2.getNombre());
+
+        // Verificar que save no fue llamado para el segundo intento
+        InOrder inOrder = inOrder(productoRepository);
+        inOrder.verify(productoRepository).save(any(Producto.class)); // first call
+    }
+
     // Test caso de error de crearProducto. Nombre ya existente
     @Test
     void crearProductoDeberiaLanzarExcepcionCuandoNombreYaExiste() {
         CrearProductoDto dto = crearCrearProductoDto("Hamburguesa clásica", "8.50", true, 1L);
 
-        when(productoRepository.existsByNombre(dto.getNombre())).thenReturn(true);
+        when(productoRepository.existsByNombreIgnoreCase(dto.getNombre())).thenReturn(true);
 
         assertThatThrownBy(() -> productoService.crearProducto(dto))
                 .isInstanceOf(PedidoStateException.class)

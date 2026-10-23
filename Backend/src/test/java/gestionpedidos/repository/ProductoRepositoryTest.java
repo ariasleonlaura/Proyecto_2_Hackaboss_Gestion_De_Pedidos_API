@@ -4,6 +4,7 @@ import gestionpedidos.dto.ProductoMasVendidoDto;
 import gestionpedidos.model.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
@@ -13,6 +14,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
+@ActiveProfiles("test")
 class ProductoRepositoryTest {
 
     @Autowired
@@ -130,5 +132,17 @@ class ProductoRepositoryTest {
         assertThat(resultado.get(0).getTotalVendido()).isEqualTo(3L);
         assertThat(resultado.get(1).getProductoId()).isEqualTo(menosVendido.getId());
         assertThat(resultado.get(1).getTotalVendido()).isEqualTo(1L);
+    }
+
+    @Test
+    void existsByNombreIgnoreCaseDeberiaRetornarVerdaderoCuandoElNombreSoloDifiereEnMayusculas() {
+        // Arrange: creamos una categoría con nombre "Hamburguesas"
+        Categoria categoria = categoriaRepository.save(crearCategoria("Hamburguesas"));
+
+        // Act: verificamos que existsByNombreIgnoreCase retorna true para variante en minúsculas
+        boolean existe = categoriaRepository.existsByNombreIgnoreCase("hamburguesas");
+
+        // Assert: debe ser true ya que solo difiere en mayúsculas/minúsculas
+        assertThat(existe).isTrue();
     }
 }
