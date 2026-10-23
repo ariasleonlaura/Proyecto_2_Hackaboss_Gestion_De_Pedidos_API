@@ -175,9 +175,8 @@ public class PedidoService {
     }
 
     public PedidoDto obtenerPedidoPorCodigo(String codigo) {
-        String codigoTratado = codigo.trim();
-        Pedido pedido = pedidoRepository.findByCodigoIgnoreCase(codigoTratado)
-                .orElseThrow(() -> new ResourceNotFoundException("Pedido con código " + codigoTratado + " no encontrado"));
+        Pedido pedido = pedidoRepository.findByCodigo(codigo)
+                .orElseThrow(() -> new ResourceNotFoundException("Pedido con código " + codigo + " no encontrado"));
 
         return pedidoToPedidoDto(pedido);
     }
