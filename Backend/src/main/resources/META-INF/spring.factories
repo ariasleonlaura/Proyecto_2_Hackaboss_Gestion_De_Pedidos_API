@@ -1,2 +1,0 @@
-# Spring Boot META-INF/spring.factories
-org.springframework.boot.env.EnvironmentPostProcessor=gestionpedidos.config.MotorPostgresqlValidator

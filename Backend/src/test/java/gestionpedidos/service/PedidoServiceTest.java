@@ -533,7 +533,7 @@ class PedidoServiceTest {
         verify(pedidoRepository).delete(pedido);
     }
 
-    // Test caso de éxito de obtenerPedidoPorCodigo (código en mayúsculas)
+    // Test caso de éxito de obtenerPedidoPorCodigo
     @Test
     void obtenerPedidoPorCodigoDeberiaDevolverloCuandoExiste() {
         Pedido pedido = crearPedido(1L, "PED-0001", EstadoPedido.CREADO, "8.50", List.of());
@@ -541,25 +541,11 @@ class PedidoServiceTest {
         no lo metemos como parámetro obligatorio de crearPedido() y  */
         pedido.setTerminal(crearTerminal(1L));
 
-        when(pedidoRepository.findByCodigoIgnoreCase(pedido.getCodigo())).thenReturn(Optional.of(pedido));
+        when(pedidoRepository.findByCodigo(pedido.getCodigo())).thenReturn(Optional.of(pedido));
 
         PedidoDto resultado = pedidoService.obtenerPedidoPorCodigo(pedido.getCodigo());
 
         // System.out.println(mockingDetails(pedidoRepository).printInvocations());
-
-        assertThat(resultado.getId()).isEqualTo(pedido.getId());
-        assertThat(resultado.getCodigo()).isEqualTo(pedido.getCodigo());
-    }
-
-    // Test caso de éxito de obtenerPedidoPorCodigo con código en minúsculas
-    @Test
-    void obtenerPedidoPorCodigoDeberiaDevolverloCuandoCodigoEnMinusculas() {
-        Pedido pedido = crearPedido(1L, "PED-0001", EstadoPedido.CREADO, "8.50", List.of());
-        pedido.setTerminal(crearTerminal(1L));
-
-        when(pedidoRepository.findByCodigoIgnoreCase("ped-0001")).thenReturn(Optional.of(pedido));
-
-        PedidoDto resultado = pedidoService.obtenerPedidoPorCodigo("ped-0001");
 
         assertThat(resultado.getId()).isEqualTo(pedido.getId());
         assertThat(resultado.getCodigo()).isEqualTo(pedido.getCodigo());
@@ -570,7 +556,7 @@ class PedidoServiceTest {
     void obtenerPedidoPorCodigoDeberiaLanzarExcepcionCuandoPedidoNoSeEncuentra() {
         String codigo = "PED-0001";
 
-        when(pedidoRepository.findByCodigoIgnoreCase(codigo)).thenReturn(Optional.empty());
+        when(pedidoRepository.findByCodigo(codigo)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> pedidoService.obtenerPedidoPorCodigo(codigo))
                 .isInstanceOf(ResourceNotFoundException.class)
