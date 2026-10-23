@@ -32,8 +32,8 @@ public class TerminalService {
 
     // Método para guardar una nueva terminal. Recibe un dto y devuelve otro de salida
     public TerminalDto crearTerminal(CrearTerminalDto nuevaTerminalDto) {
-        // Evita terminales con el mismo nombre
-        if (terminalRepository.existsByNombre(nuevaTerminalDto.getNombre())) {
+        // Evita terminales con el mismo nombre (búsqueda insensible a mayúsculas/minúsculas)
+        if (terminalRepository.existsByNombreIgnoreCase(nuevaTerminalDto.getNombre())) {
             throw new PedidoStateException("Ya existe una terminal con el nombre " + nuevaTerminalDto.getNombre());
         }
 

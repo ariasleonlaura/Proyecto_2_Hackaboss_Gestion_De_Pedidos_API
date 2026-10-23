@@ -24,8 +24,8 @@ public class ProductoService {
 
     // Crear producto
     public ProductoDto crearProducto(CrearProductoDto dto) {
-        // Evita productos con el mismo nombre
-        if (productoRepository.existsByNombre(dto.getNombre())) {
+        // Evita productos con el mismo nombre (búsqueda insensible a mayúsculas/minúsculas)
+        if (productoRepository.existsByNombreIgnoreCase(dto.getNombre())) {
             throw new PedidoStateException("Ya existe un producto con el nombre " + dto.getNombre());
         }
 

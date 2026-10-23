@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.InOrder;
 
 import java.util.List;
 import java.util.Optional;
@@ -65,12 +66,12 @@ public class CategoriaServiceTest {
         assertThat(resultado.get(1).getId()).isEqualTo(categoria2.getId());
     }
 
-    // Test caso de éxito del método crearCategoria
+    // Test caso de éxito del método crearCategoria (nombre único)
     @Test
     void crearCategoriaDeberiaGuardarlaCuandoElNombreNoExiste() {
         CrearCategoriaDto dto = crearCategoriaDto("Hamburguesas");
 
-        when(categoriaRepository.existsByNombre(dto.getNombre())).thenReturn(false);
+        when(categoriaRepository.existsByNombreIgnoreCase(dto.getNombre())).thenReturn(false);
         when(categoriaRepository.save(any(Categoria.class))).thenAnswer(invocation -> {
             Categoria categoria = invocation.getArgument(0);
             categoria.setId(1L);
@@ -86,12 +87,41 @@ public class CategoriaServiceTest {
         verify(categoriaRepository).save(any(Categoria.class));
     }
 
+    // Test caso de error: "Bebidas" y "bebidas" se rechazan como duplicados (insensible a mayúsculas)
+    @Test
+    void crearCategoriaDeberiaLanzarExcepcionCuandoElNombreDifiereSoloEnMayusculas() {
+        // Primero registramos "Bebidas" (debe guardarse)
+        CrearCategoriaDto dto1 = crearCategoriaDto("Bebidas");
+
+        when(categoriaRepository.existsByNombreIgnoreCase(dto1.getNombre())).thenReturn(false);
+        when(categoriaRepository.save(any(Categoria.class))).thenAnswer(invocation -> {
+            Categoria categoria = invocation.getArgument(0);
+            categoria.setId(1L);
+            return categoria;
+        });
+        categoriaService.crearCategoria(dto1);
+
+        // Ahora intentar crear "bebidas" debería rechazarse (no debe guardarse de nuevo)
+        CrearCategoriaDto dto2 = crearCategoriaDto("bebidas");
+
+        when(categoriaRepository.existsByNombreIgnoreCase(dto2.getNombre())).thenReturn(true);
+
+        assertThatThrownBy(() -> categoriaService.crearCategoria(dto2))
+                .isInstanceOf(PedidoStateException.class)
+                .hasMessageContaining("Ya existe una categoría con el nombre " + dto2.getNombre());
+
+        // Verificar que save no fue llamado para el segundo intento
+        InOrder inOrder = inOrder(categoriaRepository);
+        inOrder.verify(categoriaRepository).save(any(Categoria.class)); // first call
+        // verify(categoriaRepository, never()).save(any()); // removed - save was called for first one
+    }
+
     // Test caso de error del método crearCategoria. Nombre de categoría ya existente
     @Test
     void crearCategoriaDeberiaLanzarExcepcionCuandoElNombreYaExiste() {
         CrearCategoriaDto dto = crearCategoriaDto("Hamburguesas");
 
-        when(categoriaRepository.existsByNombre(dto.getNombre())).thenReturn(true);
+        when(categoriaRepository.existsByNombreIgnoreCase(dto.getNombre())).thenReturn(true);
 
         assertThatThrownBy(() -> categoriaService.crearCategoria(dto))
                 .isInstanceOf(PedidoStateException.class)
