@@ -16,7 +16,6 @@ Memoria del proyecto entre sesiones (máximo ~50 líneas): resume o elimina lo q
 - Paquete simplificado a `gestionpedidos` (sin `com.empresa`) — proyecto de portfolio, no librería a publicar.
 - Rediseño visual completado: tokens unificados (`tokens.css`), dark mode por SO, iconos Lucide, responsive en las 3 páginas.
 - Duplicados de catálogo insensibles a mayúsculas (`existsByNombreIgnoreCase`); el texto se guarda y muestra tal como se escribió.
-- Limpieza frontend (spec 002): hook `usePedidoPorCodigo` sin usos borrado (RecogidaPage llama a la API directamente); bloque CSS `.pedido-encontrado-card` muerto borrado; `pedido-listo-card--sin-accion` eliminada del JS (estilo base, sin regla CSS que la acompañara). `specs/002-*` intactas como histórico.
 
 ## Aprendizajes y errores a evitar
 
