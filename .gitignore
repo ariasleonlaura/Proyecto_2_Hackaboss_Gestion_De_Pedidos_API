@@ -1,8 +1,10 @@
 # macOS
 **/.DS_Store
-# Herramientas locales de agentes/IA: no forman parte del proyecto.
+
 # Contraseña real de Docker Compose: solo se versiona el .env.example.
 .env
+
+# Herramientas locales de agentes/IA: no forman parte del proyecto.
 .agents/skills/chrome-devtools
 .agents/skills/design-taste-frontend
 .agents/skills/find-skills
