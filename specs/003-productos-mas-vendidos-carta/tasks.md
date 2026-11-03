@@ -1,6 +1,6 @@
 # Tasks — Productos más vendidos en la carta
 
-> Documento retrospectivo: todas las tareas están completadas (commits `64b5630` y `d00cdba`).
+> Documento retrospectivo: T1-T9 en los commits `64b5630` y `d00cdba`; T10-T12  son correcciones de la revisión.
 > Tareas pequeñas en orden de dependencia, con RF cubierta.
 
 - [x] **T1: Backend — endpoint `GET /api/estadisticas/productos-mas-vendidos`**
@@ -47,3 +47,18 @@
   - Acción: Añadir en `TerminalPage.css` los estilos de `.mas-vendidos` para que tenga el mismo aspecto que las categorías.
   - RF: RF-1
   - Hecho cuando: El recuadro de la sección se ve igual que el de una categoría. Hecho: implementado.
+
+- [x] **T10: Frontend — corrección del bug de desestructuración en `TerminalPage.jsx`**
+  - Acción: Corregir en `TerminalPage.jsx` la desestructuración del hook `useProductosMasVendidos`: cambiar `errorMasVendidos` (sin alias) por `error: errorMasVendidos`. Sin el alias, el campo `error` que devuelve el hook no se capturaba (`errorMasVendidos` quedaba `undefined`), `!errorMasVendidos` era siempre cierto y la sección no se ocultaba cuando fallaba el ranking.
+  - RF: RF-8
+  - Hecho cuando: Si el hook devuelve error, la sección "Los más vendidos" se oculta y el resto de la carta sigue funcionando con normalidad. Hecho: implementado en `ea1e801`.
+
+- [x] **T11: Frontend — borrado de código muerto de estilos**
+  - Acción: Eliminar de `TerminalPage.css` tres reglas sin uso: `.mas-vendidos__lista` (sin ninguna referencia en el JSX), `.categoria-card__toggle::after` (decoraba con `content: '+'` un botón que ya pinta `[+]`/`[-]` desde React) y `.categoria-card__toggle[aria-expanded="true"]::after` (nunca coincidía: el botón no declara `aria-expanded`).
+  - RF: sin RF directa (corrección/limpieza post-revisión)
+  - Hecho cuando: No quedan esas reglas muertas en `TerminalPage.css`. Hecho: implementado en `ea1e801`.
+
+- [x] **T12: Repositorio — ajustes de `.gitignore` y poda de `MEMORY.md`** (incluidos en el mismo commit de revisión)
+  - Acción: En `.gitignore`, reordenar las secciones y actualizar las rutas ignoradas de herramientas de agentes/IA (`.agents/skills/*` sin barra final, `.aider-desk/skills`, y añadir `opencode.json` y `skills-lock.json`). En `MEMORY.md`, eliminar la línea obsoleta sobre la limpieza de la spec 002.
+  - RF: sin RF directa (corrección/limpieza post-revisión)
+  - Hecho cuando: Las herramientas locales de agentes/IA quedan ignoradas y `MEMORY.md` queda más corto. Hecho: implementado en `ea1e801`.
