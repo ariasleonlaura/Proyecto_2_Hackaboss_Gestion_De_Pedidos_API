@@ -12,3 +12,4 @@
 skills-lock.json
 # Contraseña real de Docker Compose: solo se versiona el .env.example.
 .env
+opencode.json
