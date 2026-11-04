@@ -6,7 +6,7 @@ Memoria del proyecto entre sesiones (máximo ~50 líneas): resume o elimina lo q
 
 - Backend completo: CRUD Categoría/Producto/Terminal, ciclo de vida de Pedido, Estadísticas (productos más vendidos, ranking terminales).
 - Tests backend: **124 en verde** (`mvn -f Backend/pom.xml test -Dspring.profiles.active=test`), incluidos integración y repositorio contra PostgreSQL real con Testcontainers (arreglo de T9, spec 005) y el test de migraciones (T11, spec 004). Frontend: flujo Terminal/Cocina/Recogida funcionando, "Los más vendidos" en carta de Terminal, sin tests automáticos de UI.
-- Spec 005 Docker: T1-T9 completadas (T5-T7 las ejecuta el usuario con Docker Desktop).
+- Spec 005 Docker: **T1-T14 completadas** (T5-T7 y T12-T13 las ejecuta el usuario con Docker Desktop); cierra el cambio RF-22.
 
 ## Decisiones (y por qué)
 
@@ -16,6 +16,12 @@ Memoria del proyecto entre sesiones (máximo ~50 líneas): resume o elimina lo q
 - Paquete simplificado a `gestionpedidos` (sin `com.empresa`) — proyecto de portfolio, no librería a publicar.
 - Rediseño visual completado: tokens unificados (`tokens.css`), dark mode por SO, iconos Lucide, responsive en las 3 páginas.
 - Duplicados de catálogo insensibles a mayúsculas (`existsByNombreIgnoreCase`); el texto se guarda y muestra tal como se escribió.
+
+### Docker — cambio RF-22 (spec 005)
+
+- Capa `RUN mvn -B dependency:go-offline` en `Backend/Dockerfile` (entre `COPY pom.xml` y `COPY src`): cambiar solo `src/` no re-descarga dependencias. No se usó `--mount=type=cache`: BuildKit no exporta monturas a la caché remota (en CI re-descargaría siempre) y, sobre `/root/.m2`, sombrearía la capa (incompatibles entre sí).
+- **CI (spec 006)**: al implementar su job `docker`, `cache-to` debe llevar **`mode=max`** para exportar la capa intermedia de dependencias — **dejar un comentario junto a esa línea del workflow**. Este cambio **no toca `specs/006-ci-github-actions/` ni `.github/`** (solo esta nota).
+- Jar en capas (conclusión T10): mejora opcional futura vía `java -Djarmode=tools -jar app.jar extract --layers` (SB 4.x; `layertools` es el antecesor retirado). No se implanta: alteraría el contenido/arranque de la imagen de ejecución (invariante RF-1–RF-21).
 
 ## Aprendizajes y errores a evitar
 
@@ -31,10 +37,6 @@ Memoria del proyecto entre sesiones (máximo ~50 líneas): resume o elimina lo q
 - Testcontainers 2.x renombró artefactos (`postgresql` → `testcontainers-postgresql`); el BOM de Spring Boot solo gestiona los nuevos → nunca mezclar módulos 1.x con core 2.x.
 - `MotorPostgresqlValidator` captura `IllegalArgumentException` de `${DB_URL}` sin definir: no debe romper el arranque.
 - Migraciones probadas aparte (`MigracionFlywayTest`): perfil `test` + `@SpringBootTest(properties={flyway=true, ddl-auto=validate})` contra un contenedor vacío. Habilitar Flyway en `application-test.properties` rompería los tests (V2 siembra catálogo con nombres únicos).
-
-## Próximos pasos
-
-- Opcional: migrar `listarProductos` a `Specification`.
 
 ## Specs anteriores
 
