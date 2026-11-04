@@ -6,6 +6,8 @@ Hoy, para ejecutar el proyecto hay que instalar y configurar a mano PostgreSQL, 
 
 Depende de la spec 004 (PostgreSQL y Flyway), que es la que prepara la base de datos vacía con el esquema y los datos de ejemplo.
 
+**Cambio en revisión (rendimiento de construcción)**: la base de esta spec ya está implementada; este cambio añade mejoras de velocidad de reconstrucción de las imágenes —sobre todo la del backend, que hoy vuelve a descargar todas las dependencias de Maven cada vez que cambia solo el código— sin alterar en nada el comportamiento observable en runtime: todos los requisitos de esta spec (RF-1 a RF-21) siguen vigentes tal cual. Los archivos existentes se mejoran a mano.
+
 ## Usuarios
 - Desarrollador (el autor, o quien clone el repositorio) que quiere ejecutar o probar el sistema.
 - Persona que evalúa el proyecto y quiere verlo funcionando sin una configuración compleja.
@@ -15,6 +17,7 @@ Depende de la spec 004 (PostgreSQL y Flyway), que es la que prepara la base de d
 - HU-2. Como desarrollador, quiero levantar solo la base de datos para ejecutar el backend y el frontend desde el IDE.
 - HU-3. Como desarrollador, quiero que mis datos se conserven entre reinicios y poder empezar de cero cuando quiera.
 - HU-4. Como autor del repositorio, quiero que las contraseñas no se suban a git para no exponer credenciales.
+- HU-5. Como desarrollador, quiero que reconstruir la imagen tras cambiar solo el código no vuelva a descargar todas las dependencias, para iterar rápido sin conexión lenta.
 
 ## Definiciones
 - **Modo "todo en Docker"**: base de datos, backend y frontend se ejecutan en contenedores.
@@ -55,12 +58,16 @@ Depende de la spec 004 (PostgreSQL y Flyway), que es la que prepara la base de d
 - RF-20: SI se cambia la versión mayor de PostgreSQL sobre datos ya creados, ENTONCES la base de datos no arrancará con esos datos, y la documentación explicará que hay que borrarlos y empezar de cero.
 - RF-21: SI la contraseña de la configuración real es distinta de la de una base de datos ya creada, ENTONCES EL SISTEMA no modificará la de la base existente, el backend no podrá conectarse, y la documentación explicará que hay que borrar los datos o cambiarla dentro de la base.
 
+### Construcción de las imágenes
+- RF-22: CUANDO el usuario reconstruya la imagen del backend tras un cambio solo en el código fuente, EL SISTEMA no volverá a descargar las dependencias de Maven durante la construcción; el resultado de la imagen y su comportamiento en runtime no cambian.
+
 ## Requisitos no funcionales
 - Los mensajes que genere el proyecto están en español.
 - Ninguna contraseña se guarda en el repositorio, en las imágenes ni en los mensajes de error.
 - La base de datos no queda expuesta a la red: solo es accesible desde la propia máquina.
 - Los servicios de la aplicación no se ejecutan con privilegios de administrador dentro de su contenedor.
 - El resultado es reproducible: dos ejecuciones sobre una copia nueva del repositorio dan el mismo sistema.
+- La optimización de construcción no altera el comportamiento observable en runtime: los RF-1 a RF-21 se cumplen exactamente igual que antes del cambio.
 - Se verifica con Docker Desktop en macOS.
 
 ## Casos límite
@@ -72,8 +79,11 @@ Depende de la spec 004 (PostgreSQL y Flyway), que es la que prepara la base de d
 - Primer arranque: la descarga de imágenes y la construcción son más lentas y requieren conexión a internet.
 - Docker no está en marcha: el error es el propio de Docker, fuera del control del proyecto.
 - Los dos modos comparten los mismos datos: lo guardado con uno se ve desde el otro.
+- Reconstruir sin cambiar nada: la caché evita el trabajo, pero el resultado es el mismo; no es un requisito medir el tiempo.
+- Borrar la caché de construcción de Docker (`docker builder prune` o `--no-cache`): la siguiente construcción vuelve a descargar dependencias una vez; el sistema resultante es idéntico.
 
 ## Fuera de alcance
+- Optimizar el tiempo de arranque en runtime o el de la base de datos: solo la velocidad de construcción de las imágenes.
 - Integración continua, publicación de imágenes en un registro y despliegue.
 - El modo mixto: backend en Docker con el frontend en el IDE.
 - Recarga en caliente dentro de los contenedores.
@@ -93,6 +103,7 @@ Depende de la spec 004 (PostgreSQL y Flyway), que es la que prepara la base de d
 - La etiqueta de PostgreSQL coincide en Docker y en las pruebas.
 - La documentación describe los dos comandos, los puertos y las advertencias de los casos límite.
 - Las pruebas del backend siguen en verde.
+- Tras cambiar un archivo en `Backend/src/` y volver a construir, los logs de la construcción no muestran una nueva descarga de dependencias de Maven (RF-22), y el sistema levantado se comporta igual que antes: todos los criterios de esta lista siguen cumpliéndose.
 
 ## Dudas abiertas
 - [RESUELTA] Un único archivo de configuración de Compose y dos comandos, sin perfiles y sin la clave "version". Modo "todo en Docker": construir y levantar todo. Modo "solo base de datos": levantar solo ese servicio y esperar a que esté lista (el comando es up --wait db; con -d a secas no espera).
@@ -104,3 +115,6 @@ Depende de la spec 004 (PostgreSQL y Flyway), que es la que prepara la base de d
 - [RESUELTA] Para el plan, imágenes: el backend se construye en dos etapas (Maven y JRE 17) y se ejecuta sin privilegios de administrador; el frontend se construye en dos etapas (Node 22 y nginx) con reescritura de rutas hacia la página principal.
 - [RESUELTA] Para el plan, base de datos: el puerto se publica solo en 127.0.0.1, con volumen para los datos y comprobación de salud.
 - [RESUELTA] Para el plan, tests: el comando de las pruebas del backend sigue siendo mvn -f Backend/pom.xml test -Dspring.profiles.active=test, y se valora que no haga falta pasar el perfil a mano.
+- [RESUELTA] `docker init` no se usa como generador de los Dockerfiles ni del Compose: solo como referencia de ideas. Los archivos existentes se mejoran a mano para no romper las decisiones ya tomadas (imágenes base, `:?`, healthchecks, puertos, etc.).
+- [RESUELTA] Mecanismo de RF-22: elegida la capa de dependencias con `dependency:go-offline` (plan.md, sección C1). No se usa la caché montada (`RUN --mount=type=cache`) por su limitación conocida de no exportarse a la caché remota del CI de la spec 006 (y sería incompatible con la capa: sombrearía `/root/.m2`), según el trade-off analizado en plan.md, sección C2.
+- [RESUELTA] Jar en capas (investigación, no requisito): Spring Boot 4.1 **sí** permite extraer capas del jar de forma soportada (`java -Djarmode=tools -jar app.jar extract --layers`), pero no se implanta en este cambio; queda como mejora opcional futura (plan.md, sección C5; T10). Sobre el frontend, no hace falta mejora análoga: su instalación de dependencias ya queda cacheada por capas (plan.md, sección C3).

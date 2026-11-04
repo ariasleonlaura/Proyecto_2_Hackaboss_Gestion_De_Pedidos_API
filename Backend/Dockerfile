@@ -4,6 +4,11 @@ WORKDIR /app
 # El pom primero y el código después: Docker reutiliza la caché de capas
 # y no vuelve a descargar dependencias si solo cambia el código.
 COPY pom.xml .
+# Capa de dependencias: solo depende del pom, no del código → si el pom no
+# cambia, esta capa queda de caché y el .m2 de la imagen ya tiene todo
+# descargado; así, un cambio de código solo reconstruye el `package` sin
+# volver a bajar nada (RF-22).
+RUN mvn -B dependency:go-offline
 COPY src ./src
 # Los tests se ejecutan en el CI, no al construir la imagen.
 RUN mvn -B -DskipTests package
