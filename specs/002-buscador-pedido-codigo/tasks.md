@@ -1,7 +1,6 @@
 # Tasks — Buscador de pedido por código en Recogida
 
-> Documento retrospectivo: todas las tareas están completadas (commit `20d4914`).
-> Tareas pequeñas en orden de dependencia, con RF cubierta.
+> Documento retrospectivo: T1-T9 en el commit `20d4914`; T10-T12 son corrección y limpieza posteriores a la revisión (sin cambio funcional).
 
 - [x] **T1: Backend — endpoint `GET /api/pedidos/codigo/{codigo}`**
   - Acción: Añadir en `PedidoController` el endpoint que recibe el código como `@PathVariable` y devuelve el `PedidoDto` directo. En `PedidoService`, añadir `obtenerPedidoPorCodigo(codigo)` que busque por código y lance `ResourceNotFoundException` si no existe. En `PedidoRepository`, añadir `findByCodigo(String codigo)`.
@@ -47,3 +46,18 @@
   - Acción: Añadir en `RecogidaPage.css` los estilos de `.busqueda-bar`, `.busqueda-input`, `.btn-buscar` y de la tarjeta de resultado, reutilizando `pedido-listo-card` para que tenga el mismo aspecto que la lista.
   - RF: RF-12
   - Hecho cuando: La tarjeta tiene el mismo fondo según el estado que las tarjetas de la lista. Hecho: implementado.
+
+- [x] **T10: Frontend — corrección de desestructuración en `TerminalPage.jsx`**
+  - Acción: Corregir la desestructuración de los hooks para usar alias correctos (`error: errorProd`, `error: errorTerm`) en lugar de nombres duplicados/incorrectos, evitando colisión de variables `error`.
+  - RF: sin RF directa (corrección post-revisión; soporta la integridad del flujo de Terminal).
+  - Hecho cuando: No hay conflicto de nombres de `error` en el componente y los errores de cada hook se renderizan por separado (`errorTerm`, `errorProd`, `errorMasVendidos`). Hecho: implementado.
+
+- [x] **T11: Frontend — limpieza de estilos muertos en `TerminalPage.css`**
+  - Acción: Eliminar reglas CSS no utilizadas por `TerminalPage.jsx` (estilos huérfanos residuales).
+  - RF: sin RF directa (limpieza).
+  - Hecho cuando: `TerminalPage.css` solo contiene reglas usadas por la página. Hecho: implementado.
+
+- [x] **T12: Frontend — tokens unificados en `TerminalPage.css`**
+  - Acción: Sustituir valores hardcodeados por los tokens de `styles/tokens.css` (espaciados, colores, radios, tipografía), manteniendo el soporte de dark mode vía `prefers-color-scheme`.
+  - RF: sin RF directa (consistencia visual / dark mode).
+  - Hecho cuando: El archivo usa `var(--...)` para espaciado, superficie, tinta, radio y tipografía. Hecho: implementado.

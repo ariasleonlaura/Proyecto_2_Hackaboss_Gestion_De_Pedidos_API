@@ -94,12 +94,6 @@
   margin-bottom: var(--sp-4);
 }
 
-.mas-vendidos__lista {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: var(--sp-3);
-}
-
 /* Categorías */
 .categoria-card {
   background: var(--surface);
@@ -123,17 +117,6 @@
 
 .categoria-card__toggle:hover {
   background: var(--surface-2);
-}
-
-.categoria-card__toggle::after {
-  content: '+';
-  font-size: 1.25rem;
-  color: var(--ink-mute);
-  transition: transform 0.2s;
-}
-
-.categoria-card__toggle[aria-expanded="true"]::after {
-  transform: rotate(45deg);
 }
 
 .categoria-card__productos {

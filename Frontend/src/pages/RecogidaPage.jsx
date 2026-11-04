@@ -11,11 +11,12 @@ import "../styles/RecogidaPage.css";
 import { toast } from "sonner";
 import { ESTADOS_PEDIDO } from "../utils/constants";
 
-// Clase extra de la tarjeta según el estado (LISTO es el verde por defecto)
+// Clase extra de la tarjeta de búsqueda según el estado: solo PAGADO tiene
+// estilo propio; LISTO y los estados no gestionables aquí (CREADO, PREPARACION,
+// ENTREGADO) se quedan con el estilo base y solo se distinguen por el texto
 const claseSegunEstado = (estado) => {
   if (estado === ESTADOS_PEDIDO.PAGADO) return "pedido-listo-card--pagado";
-  if (estado === ESTADOS_PEDIDO.LISTO) return "";
-  return "pedido-listo-card--sin-accion"; // CREADO, PREPARACION o ENTREGADO
+  return "";
 };
 
 // Cobro y entrega son los dos únicos saltos que gestiona Recogida:

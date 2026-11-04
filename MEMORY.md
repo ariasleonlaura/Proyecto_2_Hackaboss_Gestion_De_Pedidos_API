@@ -38,6 +38,11 @@ Memoria del proyecto entre sesiones (máximo ~50 líneas): resume o elimina lo q
 - `MotorPostgresqlValidator` captura `IllegalArgumentException` de `${DB_URL}` sin definir: no debe romper el arranque.
 - Migraciones probadas aparte (`MigracionFlywayTest`): perfil `test` + `@SpringBootTest(properties={flyway=true, ddl-auto=validate})` contra un contenedor vacío. Habilitar Flyway en `application-test.properties` rompería los tests (V2 siembra catálogo con nombres únicos).
 
+## Próximos pasos
+
+- Opcional: migrar `listarProductos` a `Specification`.
+- Verificación visual opcional pendiente: limpieza de código muerto de Recogida (hook `usePedidoPorCodigo`, bloque CSS `.pedido-encontrado-card`, clase `pedido-listo-card--sin-accion`) no cambia aspecto por diseño, pero no se revisó en navegador con backend arrancado.
+
 ## Specs anteriores
 
 - **004**: PostgreSQL + Flyway V1/V2, chequeo del motor al arranque, insensibilidad a mayúsculas, Testcontainers, documentación actualizada; hueco del arranque con Flyway+validate cerrado con `MigracionFlywayTest` (T11).
