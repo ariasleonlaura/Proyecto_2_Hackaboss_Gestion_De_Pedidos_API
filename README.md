@@ -1,5 +1,7 @@
 # Gestión de Pedidos API
 
+[![CI](https://github.com/daninorbert14/APIGestionDePedidosProyecto2HackABossMejorado/actions/workflows/ci.yml/badge.svg)](https://github.com/daninorbert14/APIGestionDePedidosProyecto2HackABossMejorado/actions/workflows/ci.yml)
+
 API REST y aplicación web de terminales de autoservicio: Terminal → Cocina → Recogida.
 
 ## Demo
@@ -63,6 +65,27 @@ Frontend (React + Vite)                Backend (Spring Boot)
 - **Swagger UI**: http://localhost:8080/doc/swagger-ui.html (después de arrancar el backend)
 - **Colección Postman**: `Backend/postman/` — `API de gestión de pedidos - Hamburguesería.postman_collection.json`
 - **Código fuente**: [Backend/](Backend/README.md) (Java 17, Spring Boot) y [Frontend/](Frontend/README.md) (React 19, Vite)
+
+## Integración continua
+
+El repositorio tiene un flujo de GitHub Actions (`.github/workflows/ci.yml`) que se dispara en cada pull request hacia `main` (incluidos los drafts), en cada push a `main` y manualmente con `workflow_dispatch`.
+
+**Qué verifica el flujo** (tres comprobaciones que corren en paralelo):
+
+- **Backend**: compila y pasa todas las pruebas (`mvn -B -f Backend/pom.xml test`, con Testcontainers; no necesita variables `DB_*`).
+- **Frontend**: instalación reproducible desde el lockfile (`npm ci`), lint (`npm run lint`) y build (`npm run build`).
+- **Docker**: validez del `docker-compose.yml` (incluido que la contraseña siga siendo obligatoria) y construcción de las dos imágenes (backend y frontend), sin publicarlas.
+
+**Publicación de imágenes**: la subida a GHCR ocurre **solo en un push verde a `main`**, cuando los tres trabajos anteriores terminan bien. Se publican las dos imágenes con la etiqueta del commit y con `latest` (este último solo si el commit sigue siendo la punta de `main`). **Nunca** se publica en pull requests ni en una ejecución manual.
+
+**Pasos manuales** (solo la primera vez):
+
+1. Activar GitHub Actions en el fork (pestaña *Actions* → *Enable actions on this repository*), una sola vez.
+2. Tras la primera publicación, hacer públicos **a mano los DOS paquetes** de imágenes (backend y frontend) desde la pestaña *Packages* del repositorio; hasta entonces permanecen privados.
+
+> **AVISO — no hacer `docker push` manual a ghcr.io antes de la primera publicación del CI**: una publicación manual crearía los paquetes fuera del flujo, sin pasar las comprobaciones, y condiciona la primera ejecución. Hay que esperar a que el flujo publique por sí mismo.
+
+> **AVISO sobre la imagen del frontend (RF-14)**: la imagen del frontend que construye el CI lleva incrustada `http://localhost:8080/api`, la misma dirección por defecto que usa Docker Compose; por eso solo es válida en local con Docker Compose. Una eventual demo se construirá aparte, con su dirección pública.
 
 ## Mejoras futuras (consolidado)
 

@@ -1,0 +1,104 @@
+name: CI
+on:
+  pull_request:
+    branches: [main]        # abre/actualiza PR → main; no se filtran types → drafts incluidos (RF-1)
+  push:
+    branches: [main]        # solo main: pushes a ramas sin PR no ejecutan nada (RF-2, RF-4)
+  workflow_dispatch:        # manual: todas las comprobaciones, sin publicar (RF-3)
+permissions:
+  contents: read            # mínimo a nivel global (RF-23, duda 2.5)
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}   # solo PRs: main no se cancela porque puede estar publicando (RF-25)
+jobs:
+  backend:                  # RF-5, RF-6, RF-7, RF-24
+    runs-on: ubuntu-latest
+    timeout-minutes: 20     # tope por job para que nada se cuelgue
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: "17", cache: maven }
+      - run: mvn -B -f Backend/pom.xml test      # sin variables DB_* (RF-6)
+  frontend:                 # RF-8, RF-9, RF-10, RF-11, RF-24
+    runs-on: ubuntu-latest
+    timeout-minutes: 20     # tope por job para que nada se cuelgue
+    defaults: { run: { working-directory: Frontend } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22", cache: npm, cache-dependency-path: Frontend/package-lock.json }
+      - run: npm ci         # reproducible desde package-lock.json
+      - run: npm run lint   # sin --max-warnings: los avisos no bloquean (RF-9)
+      - run: npm run build
+      # RF-11: aquí se añadirá después "- run: npm run test" sin reestructurar
+  docker:                   # RF-12, RF-13, RF-14, RF-24
+    runs-on: ubuntu-latest
+    timeout-minutes: 20     # tope por job para que nada se cuelgue
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validar Compose con valor ficticio
+        run: DB_PASSWORD=ci-dummy docker compose config --quiet
+      - name: El Compose debe fallar sin contraseña
+        run: |
+          if DB_PASSWORD="" docker compose config >/dev/null 2>&1; then
+            echo "::error::docker compose config no falla con DB_PASSWORD vacía"; exit 1
+          fi
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6        # push: false (en PRs no se publica nada)
+        with:
+          context: ./Backend
+          push: false
+          load: true
+          tags: img/backend:ci
+          labels: org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,ignore-error=true,scope=backend   # mode=max: necesario para que la capa de dependencias del backend (spec 005, go-offline) llegue a la caché
+      - uses: docker/build-push-action@v6
+        with:
+          context: ./Frontend
+          push: false
+          load: true
+          tags: img/frontend:ci
+          build-args: VITE_API_URL=http://localhost:8080/api   # RF-14: igual que el default del Compose
+          labels: org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,mode=max,ignore-error=true,scope=frontend
+      - name: Guardar imágenes (solo push a main)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: docker save img/backend:ci -o backend.tar && docker save img/frontend:ci -o frontend.tar
+      - uses: actions/upload-artifact@v4         # RF-19: no se sube en PRs (ahorra tiempo)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        with: { name: "images-${{ github.sha }}", path: "*.tar", overwrite: true }
+  publish:                  # RF-16 a RF-23
+    needs: [backend, frontend, docker]           # si alguno falla, se salta → RF-15
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'   # nunca en PR ni dispatch → RF-3, RF-16
+    runs-on: ubuntu-latest
+    timeout-minutes: 20     # tope por job para que nada se cuelgue
+    permissions:
+      contents: read
+      packages: write       # solo aquí (duda 2.5, RF-23)
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { name: "images-${{ github.sha }}" }
+      - run: docker load -i backend.tar && docker load -i frontend.tar   # RF-19: mismas imágenes, sin reconstruir
+      - name: Prefijo en minúsculas (duda 2.4)
+        run: echo "IMAGE_PREFIX=ghcr.io/$(printf '%s' "$GITHUB_REPOSITORY" | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
+      - uses: docker/login-action@v3
+        with: { registry: ghcr.io, username: "${{ github.actor }}", password: "${{ secrets.GITHUB_TOKEN }}" }
+      - name: Etiquetar y publicar (latest condicional, duda 2.1)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # vía env del paso, no interpolado en el script
+        run: |
+          docker tag img/backend:ci  "$IMAGE_PREFIX-backend:$GITHUB_SHA"
+          docker tag img/frontend:ci "$IMAGE_PREFIX-frontend:$GITHUB_SHA"
+          docker push "$IMAGE_PREFIX-backend:$GITHUB_SHA"     # RF-20: siempre, también en re-ejecución
+          docker push "$IMAGE_PREFIX-frontend:$GITHUB_SHA"
+          TIP=$(git ls-remote "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" refs/heads/main | cut -f1)
+          if [ "$TIP" = "$GITHUB_SHA" ]; then
+            docker tag img/backend:ci  "$IMAGE_PREFIX-backend:latest"
+            docker tag img/frontend:ci "$IMAGE_PREFIX-frontend:latest"
+            docker push "$IMAGE_PREFIX-backend:latest"       # RF-18/RF-21: solo el último commit mueve latest
+            docker push "$IMAGE_PREFIX-frontend:latest"
+          else
+            echo "Este commit ya no es la punta de main: no se mueve latest"
+          fi
