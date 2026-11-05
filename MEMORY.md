@@ -29,6 +29,8 @@ Memoria del proyecto entre sesiones (máximo ~50 líneas): resume o elimina lo q
 - `GROUP BY` incluye todas las columnas no agregadas del `SELECT`; `BigDecimal` → `isEqualByComparingTo`; mocks `any(Dto.class)`.
 - Pedido vacío se elimina al quitar la última línea; no crear `Backend/.env` (Spring no lo lee).
 - Ruta del proyecto: solo la de este repositorio. No sobreescribas archivos enteros sin necesidad.
+- El backend de Docker en el puerto 8080 usa FRONTEND_URL=http://localhost:8081: desde el dev en 5173 todo falla por CORS ("No Access-Control-Allow-Origin"). Diagnosticar abriendo el endpoint en una pestaña (la navegación no aplica CORS) y probando el frontend del 8081; solución: docker compose stop backend y backend del IDE en el 8080.
+- Tras una acción que cambia datos, llamar a refetch() en el mismo onClick (patrón de CocinaPage); fiarse solo del polling de 15 s deja la vista desactualizada hasta el siguiente tick.
 
 ### Tests con Testcontainers (arreglo T9)
 

@@ -151,7 +151,7 @@ const TerminalPage = () => {
       const pedidoCreado = await registrarPedido(dto);
 
       // 4. Mostramos el código generado, que el cliente usará para recoger su pedido
-      toast.success(`¡Pedido enviado! Código: ${pedidoCreado.codigo}`);
+      toast.success(`¡Pedido enviado! Código: ${pedidoCreado.data.codigo}`);
 
       setCarrito([]); // vaciamos el carrito para el siguiente cliente
     } catch (e) {
