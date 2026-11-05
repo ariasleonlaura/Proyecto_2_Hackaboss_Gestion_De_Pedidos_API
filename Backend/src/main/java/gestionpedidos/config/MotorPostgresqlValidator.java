@@ -4,11 +4,11 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.EnvironmentPostProcessor;
 import org.springframework.core.env.ConfigurableEnvironment;
 
-// Chequeo del motor al arranque (spec 004): si la URL no apunta a PostgreSQL
-// (p. ej. alguien cambia a MySQL u H2), la aplicación muere aquí con un mensaje
-// claro en vez de fallar más tarde con un error de Hibernate confuso.
-// Es EnvironmentPostProcessor a propósito: corre al preparar el entorno, antes
-// de montar el contexto y de intentar la primera conexión.
+/* Chequeo del motor al arranque (spec 004): si la URL no apunta a PostgreSQL
+(p. ej. alguien cambia a MySQL u H2), la aplicación muere aquí con un mensaje
+claro en vez de fallar más tarde con un error de Hibernate confuso.
+Es EnvironmentPostProcessor a propósito: corre al preparar el entorno, antes
+de montar el contexto y de intentar la primera conexión. */
 public class MotorPostgresqlValidator implements EnvironmentPostProcessor {
 
     @Override

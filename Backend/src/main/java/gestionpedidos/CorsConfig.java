@@ -22,7 +22,7 @@ public class CorsConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                // Aplica esta regla a todos los endpoints que empiecen por /api/
+                // Aplica esta regla a todos los endpoints que empiecen por /api
                 registry.addMapping("/api/**")
                         // Solo permite peticiones que vengan exactamente de ese origen
                         .allowedOrigins(allowedOrigin)
