@@ -2,6 +2,8 @@
 
 Spec: `specs/005-docker/spec.md` (Estado: aprobada). Este plan describe el **cómo**; el qué está en la spec. Depende de la spec 004 (PostgreSQL y Flyway), que ya dejó hecho `application.properties`, el validador del motor y `spring.factories`.
 
+> **Cambio RF-22 (aprobado)**: la mejora de velocidad de construcción del backend se describe en la sección final **«Cambio RF-22»**. Las secciones 1 a 7 siguientes describen la implementación original, ya hecha y sigue vigente tal cual; no se borran.
+
 ## 1. Archivos y responsabilidades
 
 | Archivo | Responsabilidad | RF |
@@ -209,3 +211,101 @@ No hay tests Java nuevos: la spec describe comportamiento del entorno, y se comp
 - Cambiar la versión mayor de PostgreSQL con datos existentes impide que la base arranque: hay que borrar el volumen.
 - El backend del IDE y el de Docker comparten el puerto 8080: no pueden estar activos a la vez.
 - Se verifica en macOS con Docker Desktop. En el equipo, los comandos `docker` piden confirmación a los agentes: las verificaciones de las tareas T5 a T7 las ejecuta el usuario.
+
+---
+
+## Cambio RF-22 — Reconstruir el backend sin re-descargar dependencias (sección nueva)
+
+Spec: `specs/005-docker/spec.md` (Estado: aprobada, con RF-22). Solo se describe el cambio; lo anterior sigue vigente.
+
+**Invariante**: RF-1 a RF-21 y el comportamiento observable de `docker compose up` no cambian. El único archivo de código que se toca es `Backend/Dockerfile` (y `MEMORY.md` para documentar); `docker-compose.yml`, `Backend/.dockerignore`, `Frontend/**` y `Backend/src/**` quedan intactos.
+
+### C1. Enfoque técnico elegido: capa `dependency:go-offline`
+
+Separar la descarga de dependencias de la compilación en su propia capa dentro de la etapa de build de `Backend/Dockerfile`, de modo que solo dependa del `pom.xml`:
+
+```dockerfile
+FROM maven:3-eclipse-temurin-17 AS build
+WORKDIR /app
+COPY pom.xml .
+# Capa de dependencias: solo depende del pom → cachada si no cambia el pom
+RUN mvn -B dependency:go-offline
+COPY src ./src
+RUN mvn -B -DskipTests package
+```
+
+Al cambiar solo el código (`src/`), las capas `COPY pom.xml` y `dependency:go-offline` siguen de caché, el `.m2` de la imagen ya contiene las dependencias y `package` no vuelve a descargar nada → **RF-22**. La etapa de ejecución (JRE, usuario sin privilegios, `EXPOSE`, `ENTRYPOINT`) no se toca.
+
+### C2. Por qué esta y no la caché montada (trade-off con el CI de la spec 006)
+
+| Mecanismo | Local | En el CI de la spec 006 (job `docker` según su plan, aún sin implementar: `cache-from/to: type=gha,mode=max`) | Veredicto |
+|---|---|---|---|
+| **Capa `dependency:go-offline` (elegida)** | Sin re-descarga al cambiar solo el código | La caché de capas **sí se exporta** a la caché remota GHA (`mode=max` incluye capas intermedias): en el runner se restaura la capa y tampoco se descarga | ✅ Elegida |
+| Caché montada `RUN --mount=type=cache` | Rápida y sobrevive incluso a `--no-cache` y a actualizaciones de la imagen base | **No se exporta** a la caché remota (limitación conocida de las cachés montadas de BuildKit): el runner arranca con la montura vacía y en cada ejecución re-descarga todas las dependencias | ❌ Descartada |
+| Ambas a la vez | — | **Incompatibles**: la montura sobre `/root/.m2` *sombrea* el contenido de la capa. `go-offline` dejaría sus descargas dentro de la montura (invisible para la capa y para CI) y `package` vería una montura vacía en CI → se perdería justo el beneficio de la capa | ❌ Descartada |
+
+La capa elegida, además, funciona con cualquier constructor (sin sintaxis específica de BuildKit). Descartada también `mvn dependency:resolve`: mismo efecto, pero `go-offline` está diseñado para este caso (baja también las dependencias de los plugins).
+
+**Compensación en CI**: no hace falta tocar `specs/006-ci-github-actions/`: según el plan de la spec 006 (aún sin implementar), su job `docker` usará `cache-from: type=gha` + `cache-to: type=gha,mode=max`, que exportará e importará la capa nueva automáticamente. Acoplamiento a vigilar: si en ese plan se bajara a `mode=min`, solo se exportarían las capas finales y la capa de dependencias dejaría de llegar al CI (anotado en C8).
+
+### C3. Frontend: sin cambios
+
+`Frontend/Dockerfile` ya copia `package.json`/`package-lock.json` antes de `npm ci`, así que la instalación queda cacheada y una reconstrucción por cambio de código no la repite. No hay nada que mejorar ahí; la RF-22 es solo del backend.
+
+### C4. Archivos del cambio
+
+| Archivo | Acción | Responsabilidad | RF |
+|---|---|---|---|
+| `Backend/Dockerfile` | **editar** (solo la etapa de build) | Capa `dependency:go-offline` entre `COPY pom.xml` y `COPY src` (C1), con comentarios en español. | RF-22 |
+| `MEMORY.md` | **editar** (al final) | Decisión del mecanismo (y por qué no la montura), requisito de `mode=max` para el CI de la spec 006 y conclusión sobre el jar en capas (mejora opcional futura). | — |
+
+**No se tocan**: `docker-compose.yml`, `Backend/.dockerignore` (ya cubre lo relevante; descartado en la spec), `Frontend/**`, `Backend/src/**`, `specs/006-ci-github-actions/*`.
+
+### C5. Jar en capas: conclusión de la investigación (duda [PENDIENTE DE PLAN], no requisito)
+
+**Conclusión (ya comprobada)**: Spring Boot 4.0/4.1/4.2 **sí documenta un mecanismo soportado** para extraer las capas del jar: `java -Djarmode=tools -jar app.jar extract --layers` (`layertools` fue su antecesor y se eliminó; `-Djarmode=tools` es el sustituto vigente).
+
+**Decisión**: **no se implanta en este cambio**, por dos motivos:
+
+1. No es necesario para RF-22: la capa `dependency:go-offline` (C1) ya cumple el requisito sin tocar la imagen de ejecución.
+2. Alteraría el contenido y el arranque de la imagen de ejecución (jar extraído en capas en vez de `app.jar` copiado tal cual), lo que el invariante RF-1–RF-21 prohíbe: ese comportamiento observable no cambia en este cambio.
+
+Se anota en `MEMORY.md` como **mejora opcional futura** (T10/T14), para una eventual spec aparte que sí pueda tocar la etapa de ejecución.
+
+### C6. Pasos, en orden
+
+1. **T10** — Conclusión sobre el jar en capas (C5): sí existe mecanismo soportado en SB 4.1, no se implanta en este cambio.
+2. **T11** — Editar `Backend/Dockerfile` con la capa `go-offline` (C1).
+3. **T12** — T12 y T13 las ejecuta el usuario porque son pruebas pesadas y destructivas (construcción en frío, docker compose down -v), no por falta de herramienta.
+4. **T13** — Regresión de RF-1 a RF-21 con Docker real (**la ejecuta el usuario**).
+5. **T14** — Documentación en `MEMORY.md`.
+
+### C7. Verificación de RF-22 sin romper RF-1–RF-21
+
+**Estático (implementador, sin Docker)**: el Dockerfile tiene `COPY pom.xml` → `RUN mvn -B dependency:go-offline` → `COPY src` → `RUN mvn -B -DskipTests package`; la etapa de ejecución, `.dockerignore`, `docker-compose.yml` y `Frontend/**` sin cambios (diff de git).
+
+**Con Docker real (usuario)**:
+
+1. **Frío**: `docker build --progress=plain -t backend-rf22 Backend` → en la primera ejecución se ven las descargas.
+2. **Cambio solo de código**: añadir un comentario a un archivo de `Backend/src/` (o un archivo temporal dentro de `src/`) y reconstruir con `--progress=plain` → el paso `dependency:go-offline` aparece `CACHED` y el paso `package` no muestra líneas de descarga de dependencias (`Downloaded from`) → **RF-22**.
+3. **Revertir** el cambio (`git checkout` / borrado) y comprobar `git status` limpio. No hace falta repetir `mvn test`: no se toca la lógica (criterio "pruebas en verde" intacto por construcción).
+4. **Regresión (RF-1–RF-21)**: con `.env`, `docker compose up --build` → tres servicios; `http://localhost:8081` muestra las 3 terminales; `/cocina` directo muestra Cocina; sin `DB_PASSWORD` el comando falla antes de crear contenedores; `docker compose up --wait db` espera a la base sana. Es el mismo smoke test de T5–T7, repetido para confirmar que la imagen nueva se comporta igual.
+
+### C8. Riesgos y cómo se mitigan
+
+| Riesgo | Mitigación |
+|---|---|
+| `dependency:go-offline` no baja algún artefacto puntual → `package` descarga algo suelto | Se revisan los logs de la T12; si el residual es significativo, se para y se propone al usuario un plan B (montura local con el coste de CI explícito) antes de implantarlo. |
+| `dependency:go-offline` falla con este pom (resolución rara de un plugin) | El fallo es visible en el build; se ajusta el comando o se propone plan B. |
+| Primer build algo más lento por el paso extra | Mismo total de descargas, solo cambia el orden; sin efecto en RF-1. |
+| Actualización de la imagen base `maven:3-eclipse-temurin-17` invalida toda la etapa → una re-descarga local | Aceptado (raro y puntual); con `go-offline` igualmente se re-descarga una sola vez. |
+| Alguien cambia `mode=max` por `mode=min` en el job `docker` del plan de la spec 006 (aún sin implementar) | La capa intermedia dejaría de exportarse y CI perdería la caché; T14 deja anotado en `MEMORY.md` el requisito de `mode=max` con su comentario junto a la línea del workflow. |
+| Docker no está disponible para el agente | Verificación T12/T13 en manos del usuario (como T5–T7). |
+| Regresión invisible en runtime | Etapa de ejecución y Compose intactos + smoke test de la T13. |
+
+### C9. Cobertura de RF
+
+- **RF-22** → T11 (Dockerfile) + T12 (verificación con Docker).
+- **Invariante RF-1 a RF-21** → T13 (regresión) + diff estático de T11.
+- **Duda [PENDIENTE DE PLAN] del jar en capas** → T10 (conclusión: sí existe mecanismo soportado en SB 4.1, no se implanta en este cambio; queda como mejora opcional futura).
+- **Documentación** → T14 (`MEMORY.md`).

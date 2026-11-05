@@ -34,7 +34,7 @@ const TerminalPage = () => {
   const {
     datos: masVendidos,
     loading: loadingMasVendidos,
-    errorMasVendidos,
+    error: errorMasVendidos,
   } = useProductosMasVendidos();
 
   /* Agrupamos la lista plana de productos en un objeto por categoría:
