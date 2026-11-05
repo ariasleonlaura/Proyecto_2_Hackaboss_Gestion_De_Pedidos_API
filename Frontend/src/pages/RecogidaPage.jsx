@@ -23,7 +23,10 @@ const claseSegunEstado = (estado) => {
 // la petición fue bien para que la vista oculte la tarjeta de búsqueda
 const handleAccion = async (id, estadoActual) => {
   try {
-    const nuevoEstado = estadoActual === ESTADOS_PEDIDO.LISTO ? ESTADOS_PEDIDO.PAGADO : ESTADOS_PEDIDO.ENTREGADO;
+    const nuevoEstado =
+      estadoActual === ESTADOS_PEDIDO.LISTO
+        ? ESTADOS_PEDIDO.PAGADO
+        : ESTADOS_PEDIDO.ENTREGADO;
     await cambiarEstadoDelPedido(id, { estado: nuevoEstado });
     toast.success(
       estadoActual === ESTADOS_PEDIDO.LISTO
@@ -38,9 +41,13 @@ const handleAccion = async (id, estadoActual) => {
 };
 
 const RecogidaPage = () => {
-  // Tras la acción no se llama a refetch: la lista se refresca sola con el
-  // polling de usePedidosPorEstados (cada 15 s), que sigue corriendo aquí
-  const { pedidos, loading, error } = usePedidosPorEstados([ESTADOS_PEDIDO.LISTO, ESTADOS_PEDIDO.PAGADO]);
+  // Tras cada acción se llama a refetch para que la lista cambie al instante
+  // (mismo patrón que Cocina); el polling de 15 s queda como respaldo para
+  // cambios hechos desde otras pantallas
+  const { pedidos, loading, error, refetch } = usePedidosPorEstados([
+    ESTADOS_PEDIDO.LISTO,
+    ESTADOS_PEDIDO.PAGADO,
+  ]);
   const [codigoBusqueda, setCodigoBusqueda] = useState("");
   const [mostrarPedidoEncontrado, setMostrarPedidoEncontrado] = useState(false);
   const [pedidoEncontrado, setPedidoEncontrado] = useState(null);
@@ -80,6 +87,8 @@ const RecogidaPage = () => {
 
       <div className="busqueda-bar">
         <input
+          id="busqueda-codigo"
+          name="busqueda-codigo"
           type="text"
           placeholder="Buscar por código del pedido (ej. PED-AB12CD34)"
           value={codigoBusqueda}
@@ -109,7 +118,11 @@ const RecogidaPage = () => {
                     pedidoEncontrado.id,
                     pedidoEncontrado.estado,
                   );
-                  if (exito) setMostrarPedidoEncontrado(false);
+                  if (exito) {
+                    setMostrarPedidoEncontrado(false);
+                    // El estado se reasigna justo después de guardar → render inmediato
+                    refetch();
+                  }
                 }}
               >
                 {pedidoEncontrado.estado === ESTADOS_PEDIDO.LISTO
@@ -152,7 +165,11 @@ const RecogidaPage = () => {
               </p>
               <button
                 className="btn-entregar"
-                onClick={() => handleAccion(pedido.id, pedido.estado)}
+                onClick={async () => {
+                  const exito = await handleAccion(pedido.id, pedido.estado);
+
+                  if (exito) refetch();
+                }}
               >
                 {pedido.estado === ESTADOS_PEDIDO.LISTO ? (
                   <>
